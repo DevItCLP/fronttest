@@ -7,7 +7,7 @@
 "use client";
 
 import PageContainer from "@/app/components/container/PageContainer";
-import SsaView from "@/app/sections/ssa/view/ssa-view";
+import SsaView from "@/app/sections/ssa/view/viewSsa";
 import ThemeProvider from "@/theme";
 import { Suspense } from "react";
 

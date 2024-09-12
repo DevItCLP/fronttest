@@ -26,9 +26,18 @@ export function SweetNotifySuccess({ message, redirectUrl }: { message: string; 
 
 export function SweetNotifyWarning({ message }: { message: string }) {
   Swal.fire({
-    width: "30%",
+//    width: "30%",
     icon: "warning" as SweetAlertIcon,
     title: "!Atención",
+    html: `<h5>${message}</h5>`,
+    allowOutsideClick: false,
+  });
+}
+export function SweetNotifySuccesss({ message }: { message: string }) {
+  Swal.fire({
+   // width: "30%",
+    icon: "success" as SweetAlertIcon,
+    title: "OK",
     html: `<h5>${message}</h5>`,
     allowOutsideClick: false,
   });

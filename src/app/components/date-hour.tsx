@@ -4,11 +4,12 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { Controller } from "react-hook-form";
-import { Box, Grid, Typography } from "@mui/material";
+import { Box, createTheme, Grid, TextField, Typography } from "@mui/material";
 import "rsuite/dist/rsuite.min.css";
 import { TimePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import DateRangePicker, { DateRange } from "rsuite/esm/DateRangePicker";
+import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 //------------------------------------------------------------------------
 
 interface DataRangeProps {
@@ -27,13 +28,13 @@ export const DataRangeCC: React.FC<DataRangeProps> = ({ label, icon, name, _setV
     if (value) {
       const [startDate, endDate] = value;
       //setDateRange([startDate, endDate]);
-      const formattedStartDate = `${startDate.getFullYear()}-${String(
-        startDate.getMonth() + 1
-      ).padStart(2, "0")}-${String(startDate.getDate()).padStart(2, "0")}`;
-      const formattedEndDate = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(
+      const formattedStartDate = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, "0")}-${String(
+        startDate.getDate()
+      ).padStart(2, "0")}`;
+      const formattedEndDate = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, "0")}-${String(endDate.getDate()).padStart(
         2,
         "0"
-      )}-${String(endDate.getDate()).padStart(2, "0")}`;
+      )}`;
       _setValue(name, [formattedStartDate, formattedEndDate]);
     }
   };
@@ -69,14 +70,7 @@ interface DateProps {
 /* 
   <DateCC _control={control} _setValue={setValue} label="Fechas" name="fecha" required={true} shouldFocus={false} errors={errors} />
  */
-export const DateCC: React.FC<DateProps> = ({
-  _control,
-  _setValue,
-  label,
-  name,
-  required,
-  errors,
-}) => {
+export const DateCC: React.FC<DateProps> = ({ _control, _setValue, label, name, required, errors }) => {
   const selectRef = useRef<any>(null);
 
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -95,26 +89,28 @@ export const DateCC: React.FC<DateProps> = ({
         rules={{ required: { value: required, message: `${label} is required` } }}
         render={({ field }) => (
           <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DemoContainer components={["DatePicker"]}>
-              <DatePicker
-                {...field}
-                ref={selectRef}
-                label={required ? "* " + label : label}
-                sx={{
-                  width: "100%",
-                  "& .MuiOutlinedInput-root": {},
-                }}
-                value={selectedDate ? dayjs(selectedDate) : null}
-                onChange={handleDateChange}
-              />
-            </DemoContainer>
+            <DatePicker
+              {...field}
+              ref={selectRef}
+              label={required ? "* " + label : label}
+              sx={{
+                width: "100%",
+                "& .MuiOutlinedInput-root": {},
+              }}
+              value={selectedDate ? dayjs(selectedDate) : null}
+              onChange={handleDateChange}
+              slotProps={{
+                textField: {
+                  size: "small",
+                  sx: { width: "100%" },
+                },
+              }}
+            />
           </LocalizationProvider>
         )}
       />
 
-      {errors[name] && typeof errors[name].message === "string" && (
-        <Typography color="error">{errors[name].message}</Typography>
-      )}
+      {errors[name] && typeof errors[name].message === "string" && <Typography color="error">{errors[name].message}</Typography>}
     </div>
   );
 };
@@ -128,14 +124,7 @@ interface HourProps {
   errors: any;
 }
 /* <TimeCC _control={control} _setValue={setValue} label="Hora" name="hora" required={true} shouldFocus={false} errors={errors} />; */
-export const TimeCC: React.FC<HourProps> = ({
-  _control,
-  _setValue,
-  label,
-  name,
-  required,
-  errors,
-}) => {
+export const TimeCC: React.FC<HourProps> = ({ _control, _setValue, label, name, required, errors }) => {
   const selectRef = useRef<any>(null);
 
   const [selectedHora, setSelectedDate] = useState<string | null>(null);
@@ -171,9 +160,7 @@ export const TimeCC: React.FC<HourProps> = ({
         )}
       />
 
-      {errors[name] && typeof errors[name].message === "string" && (
-        <Typography color="error">{errors[name].message}</Typography>
-      )}
+      {errors[name] && typeof errors[name].message === "string" && <Typography color="error">{errors[name].message}</Typography>}
     </div>
   );
 };

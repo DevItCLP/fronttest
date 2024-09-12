@@ -1,0 +1,18 @@
+{
+  "dev": {
+    "awscloudformation": {}
+  },
+  "zamidev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-zamifront-zamidev-7d136-authRole",
+      "UnauthRoleArn": "arn:aws:iam::180701712810:role/amplify-zamifront-zamidev-7d136-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::180701712810:role/amplify-zamifront-zamidev-7d136-authRole",
+      "Region": "us-east-1",
+      "DeploymentBucketName": "amplify-zamifront-zamidev-7d136-deployment",
+      "UnauthRoleName": "amplify-zamifront-zamidev-7d136-unauthRole",
+      "StackName": "amplify-zamifront-zamidev-7d136",
+      "StackId": "arn:aws:cloudformation:us-east-1:180701712810:stack/amplify-zamifront-zamidev-7d136/93793280-2511-11ef-aabf-0affd30b7617",
+      "AmplifyAppId": "d3rcrw9vm15xws"
+    }
+  }
+}

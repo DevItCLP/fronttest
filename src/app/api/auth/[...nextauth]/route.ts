@@ -22,33 +22,31 @@ const handler = NextAuth({
           usser: credentials?.username,
           password: credentials?.password,
         };
-        const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/ascl/auth`, datos, { auth: authCredentials });
+        const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth`, datos, { auth: authCredentials });
         const user = response.data.object;
         if (response.data.status === "success") {
-          const validate = validatePassword(user, datos.password);
-          if (validate) {
-            const userSession = {
-              id: user[0].idUser.toString(),
-              name: `${user[0].nombresUser} ${user[0].apellidosUser}`,
-              email: user[0].emailUser,
-              telefono: user[0].telefonoUser,
-              rol: user[0].nombreRol,
-            };
-            return userSession;
-          } else {
-            throw new Error("La contraseña es incorrecta");
-          }
+          const userSession = {
+            id: user[0].idUser.toString(),
+            name: `${user[0].nombresUser} ${user[0].apellidosUser}`,
+            email: user[0].emailUser,
+            telefono: user[0].telefonoUser,
+            rol: user[0].nombreRol,
+          };
+          return userSession;
         }
         if (response.data.status === "warning") {
-          //throw response.data;
+          throw response.data;
+        }
+        if (response.data.status === "incorrect") {
           throw response.data;
         }
         return null;
-
-        // Return null if user data could not be retrieved
       },
     }),
   ],
+  session: {
+    maxAge: 20 * 60,
+  },
   callbacks: {
     async jwt({ token, user }) {
       return { ...token, ...user };
@@ -63,7 +61,4 @@ const handler = NextAuth({
     signIn: "/",
   },
 });
-const validatePassword = (dataUser: any, password: any) => {
-  return password == dataUser[0].password ? true : false;
-};
 export { handler as GET, handler as POST };

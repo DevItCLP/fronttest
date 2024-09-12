@@ -13,13 +13,16 @@ import Link from "next/link";
 import Image from "next/image";
 import AppWebsiteVisits from "@/app/components/dashboard/app-website-visits";
 import AppCurrentVisits from "@/app/components/dashboard/app-current-visits";
+import { Account } from "@/app/_mock/account";
 
 //---------------------------------------------------------------------
 
 const Dashboard = () => {
+  const account = Account();
+
   return (
     <>
-      <h3>Hi, Welcome Modules ZAMI 👋</h3>
+      <h3>Hi, Welcome Modules ZamiCLP 👋</h3>
       <Box mt={3}>
         <Grid container spacing={4}>
           <Grid item xs={12} sm={6} md={3}>
@@ -43,6 +46,19 @@ const Dashboard = () => {
               />
             </Link>
           </Grid>
+          {account.role == "root" && (
+            <Grid item xs={12} sm={6} md={3}>
+              <Link href={"/pages/settings"} style={{ textDecoration: "none" }}>
+                <AppWidgetSummary
+                  title="Control Panel"
+                  legend="Module"
+                  color="info"
+                  icon={<Image alt="icon" src="/assets/icons/glass/ic_glass_users.png" width={50} height={50} />}
+                />
+              </Link>
+            </Grid>
+          )}
+
           <Divider sx={{ borderStyle: "revert", m: 2 }} />
           <Grid item xs={12} md={6} lg={8}>
             <AppWebsiteVisits

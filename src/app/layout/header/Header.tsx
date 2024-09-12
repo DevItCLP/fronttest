@@ -14,7 +14,9 @@ import { IconMenu2 } from "@tabler/icons-react";
 import AccountPopover from "@/app/layout/common/account-popover";
 import LanguagePopover from "@/app/layout/common/language-popover";
 import NotificationsPopover from "@/app/layout/common/notifications-popover";
-
+import theme from "@/utils/theme";
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
 //------------------------------------------
 
 interface ItemType {
@@ -36,6 +38,9 @@ const Header = ({ toggleMobileSidebar }: ItemType) => {
     color: theme.palette.text.secondary,
   }));
 
+  const ColorModeContext = React.createContext({ toggleColorMode: () => {} });
+  const colorMode = React.useContext(ColorModeContext);
+
   return (
     <AppBarStyled position="sticky" color="default">
       <ToolbarStyled>
@@ -54,6 +59,10 @@ const Header = ({ toggleMobileSidebar }: ItemType) => {
         </IconButton>
 
         <Search />
+        <IconButton sx={{ ml: 1 }} onClick={colorMode.toggleColorMode} color="inherit">
+          {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
+        </IconButton>
+
         <Box sx={{ flexGrow: 1 }} />
         <Stack spacing={1} direction="row" alignItems="center">
           <LanguagePopover />

@@ -1,77 +1,18 @@
-/*
- * Created on Wed Apr 24 2024
- *
- * Copyright (c) 2024 CC
- * Author:  Cristian R. Paz  */
-
-import { IconBoxMultiple, IconCircleDot, IconHome, IconInfoCircle, IconLayout, IconLayoutGrid, IconPhoto, IconPoint, IconStar, IconTable, IconUser } from "@tabler/icons-react";
-import { uniqueId } from "lodash";
 import { usePathname } from "next/navigation";
+import { headerSSA, subTitlesSsa, itemsssa } from "@/app/layout/sidebar/NavModules/ssa/ResourcesSlidebarSsa";
+import { headerQA, itemsqa, subTitlesQA } from "@/app/layout/sidebar/NavModules/qa/ResourceSlidebarQA";
+import { headerSettings, itemssettings, subTitlesSettings } from "@/app/layout/sidebar/NavModules/settings/ResourcesSlideBarSettings";
 
-const itemsssa = [
-  {
-    id: uniqueId(),
-    title: "Home",
-    icon: IconHome,
-    href: "/pages/ssa",
-  },
-  {
-    id: uniqueId(),
-    title: "Reuniones de Segumiento",
-    icon: IconCircleDot,
-    href: "/pages/ssa/formrs",
-    subheader: "hola",
-  },
-  {
-    id: uniqueId(),
-    title: "Inspecciones Planificadas",
-    icon: IconTable,
-    href: "/pages/ssa/formip",
-  },
-  {
-    id: uniqueId(),
-    title: "OPT",
-    icon: IconLayoutGrid,
-    href: "/pages/ssa/formopt",
-  },
-  {
-    id: uniqueId(),
-    title: "STL",
-    icon: IconStar,
-    href: "/pages/ssa/formstl",
-  },
-  {
-    id: uniqueId(),
-    title: "REPORTES",
-    icon: IconLayout,
-    href: "/pages/ssa/reportes",
-  },
-];
-
-const itemsqa = [
-  {
-    id: uniqueId(),
-    title: "Home",
-    icon: IconHome,
-    href: "/pages/qa",
-  },
-
-  /*  {
-    id: uniqueId(),
-    title: "Images",
-    icon: IconPhoto,
-    href: "/pages/images",
-  }, */
-];
-
-function GetMenuitems() {
+function GetMenuitems(): [headerMain[], subTitles[], itemsTitles[]] {
   const pathname = usePathname();
   if (pathname.startsWith("/pages/ssa")) {
-    return itemsssa;
+    return [headerSSA, subTitlesSsa, itemsssa];
   } else if (pathname.startsWith("/pages/qa")) {
-    return itemsqa;
+    return [headerQA, subTitlesQA, itemsqa];
+  } else if (pathname.startsWith("/pages/settings")) {
+    return [headerSettings, subTitlesSettings, itemssettings];
   } else {
-    return [];
+    return [[], [], []];
   }
 }
 

@@ -15,6 +15,8 @@ import {
 import { FirstPage } from "@mui/icons-material";
 import { useEffect, useRef, useState } from "react";
 import { Controller } from "react-hook-form";
+import {createFilterOptions} from "@mui/joy";
+import {register} from "next/dist/client/components/react-dev-overlay/pages/client";
 
 interface SelectProps<T> {
   _control: any;
@@ -25,12 +27,13 @@ interface SelectProps<T> {
   size?: any;
   required: boolean;
   listaData: T[];
+  onChangeCallback?: (newValue: { label: string; value: number } | null) => void;
 }
 
 /* EJEMPLO DE USO
    <SelectCC _control={control} _setValue={setValue} label=" Areas" name="area" size="small" required={true} errors={errors} listaData={listaAreas} />
  */
-export const SelectCC: React.FC<SelectProps<any>> = ({ _control, _setValue, label, name, size, required, errors, listaData }) => {
+export const SelectCC: React.FC<SelectProps<any>> = ({ _control, _setValue, label, name, size, required, errors, listaData, onChangeCallback }) => {
   const listaAux = [
     {
       label: "No options",
@@ -41,10 +44,15 @@ export const SelectCC: React.FC<SelectProps<any>> = ({ _control, _setValue, labe
   const [selectedOpt, setSelectedOpt] = useState<string | null>(null);
   const selectRef = useRef<any>(null);
 
-  const handleDateChange = (newval: any) => {
+  const handleDataChange = (newval: any) => {
     setSelectedOpt(newval);
     if (newval) {
       _setValue(name, newval.value);
+      if (onChangeCallback) {
+        onChangeCallback(newval);
+      }
+    } else {
+      _setValue(name, undefined);
     }
   };
 
@@ -63,8 +71,8 @@ export const SelectCC: React.FC<SelectProps<any>> = ({ _control, _setValue, labe
             value={selectedOpt}
             getOptionLabel={(option) => option.label}
             isOptionEqualToValue={(option, value) => option.value === value.value}
-            onChange={(event, newValue) => {
-              handleDateChange(newValue);
+            onChange={(_, newValue) => {
+              handleDataChange(newValue);
             }}
             renderInput={(params) => (
               <Box>
@@ -97,8 +105,8 @@ export const SelectStatusCC: React.FC<Select2Props<any>> = ({ register, label, n
   };
   return (
     <div>
-      <FormControl fullWidth>
-        <InputLabel variant="standard" htmlFor={name}>
+      <FormControl size="small" fullWidth>
+        <InputLabel htmlFor={name}>
           {label}
         </InputLabel>
         <Select
@@ -117,5 +125,60 @@ export const SelectStatusCC: React.FC<Select2Props<any>> = ({ register, label, n
       </FormControl>
       {errors[name] && typeof errors[name].message === "string" && <Typography color="error">{errors[name].message}</Typography>}
     </div>
+  );
+};
+
+
+export const SelectSimple: React.FC<SelectProps<any>> = ({ _control, _setValue, label, name, size, required, errors, listaData, onChangeCallback }) => {
+  const listaAux = [
+    {
+      label: "No options",
+      value: "-1",
+    },
+  ];
+  const selectRef = useRef<HTMLSelectElement>(null);
+
+
+  return (
+      <div>
+        <FormControl size="small" fullWidth>
+          <InputLabel id={name}>
+            * {label}
+          </InputLabel>
+        <Controller
+            name={name}
+            control={_control}
+            defaultValue=""
+            rules={{ required: { value: required, message: `${label} is required` } }}
+            render={({ field }) => (
+                <Select
+
+
+                    size={size}
+                    fullWidth
+                    id={name}
+                    defaultValue=""
+                    inputRef={selectRef}
+                    labelId={name}
+                    label={label}
+                    {...field}
+                >
+                  {listaData.map((material) => (
+                      <MenuItem key={material.value} value={material.value}>
+                        {material.label}
+                      </MenuItem>
+                  ))}
+                </Select>
+            )}
+
+        />
+        </FormControl>
+
+
+
+
+
+        {errors[name] && typeof errors[name].message === "string" && <Typography color="error">{errors[name].message}</Typography>}
+      </div>
   );
 };

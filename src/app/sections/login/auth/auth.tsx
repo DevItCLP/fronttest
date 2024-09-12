@@ -1,7 +1,6 @@
 import { useSession } from "next-auth/react";
 import LoginView from "@/app/sections/login/login-view";
 import { useRouter } from "next/navigation";
-import { NextResponse } from "next/server";
 import { useEffect } from "react";
 
 /*

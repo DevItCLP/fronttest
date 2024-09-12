@@ -58,6 +58,7 @@ export default function LoginView() {
           icon: "success",
         });
         /*si las validaciones estan todo bien me redirecciono al Dashboard*/
+
         router.push("/dashboard");
       } else {
         if (responseNextAuth?.error == "") {
@@ -125,11 +126,11 @@ export default function LoginView() {
           }}
         >
           <Box display="flex" alignItems="center" flexDirection="column">
-            <Typography variant="h3" fontWeight="bold">
-              Bienvenido a ZAMI
+            <Typography variant="h4" fontWeight="bold">
+              Bienvenido a ZamiCLP
             </Typography>
             <br />
-            <Image src="/images/logos/Logo1.png" alt="Banner clp" width={70} height={70} />
+            <Image src="/images/logos/logo.png" alt="Banner clp" width={90} height={90} />
           </Box>
           <br />
 

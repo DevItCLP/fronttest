@@ -7,7 +7,7 @@
 "use client";
 
 import PageContainer from "@/app/components/container/PageContainer";
-import ReportSSA from "@/app/sections/ssa/listar-programas";
+import ReportSSA from "@/app/sections/ssa/viewListarProgramas";
 
 export default function reportSSA() {
   return (

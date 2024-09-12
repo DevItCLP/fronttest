@@ -11,7 +11,7 @@ import { Box, Button, CardMedia, Container, Grid, Table, TableBody, TableCell, T
 import ReactToPrint from "react-to-print";
 import PrintIcon from "@mui/icons-material/Print";
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import React from "react";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
@@ -164,27 +164,91 @@ export const DocModal: React.FC<interFace<any>> = ({ listaGeneral, listaPregunta
               </TableBody>
             </Table>
 
-            {listaPreguntas.length > 0 && <DividerCenter texto="Preguntas y Respuestas" />}
+            {listaPreguntas.length > 0 && listaGeneral[0].idListActLiderazgo == 2 ? (
+              <DividerCenter texto=" Observaciones Encontradas" />
+            ) : (
+              <DividerCenter texto="Preguntas y Respuestas" />
+            )}
 
             {listaPreguntas.map((val, index) => (
               <React.Fragment key={index}>
-                <Table size="small" sx={{ border: 1 }}>
-                  <TableBody>
-                    <TableRow key={index}>
-                      <TableCell sx={{ fontWeight: "bold", backgroundColor: "#EBEDEF" }} colSpan={2}>
-                        {val.preguntas}
-                      </TableCell>
-                    </TableRow>
-                    <TableRow key={`opcion-${index}`}>
-                      <TableCell sx={{ textAlign: "center", borderRight: 0.5, width: 150 }}>{val.checkOption}</TableCell>
-                      <TableCell>{val.comentarios}</TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
+                {listaGeneral[0].idListActLiderazgo == 2 ? (
+                  <Table key={index} size="small" sx={{ border: 1 }}>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell sx={{ textAlign: "left", borderRight: 0.5, width: 150 }}>
+                          <Typography component={"span"} variant="h6">
+                            {val.checkOption}:
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography component={"span"} variant="h6" fontWeight={"bold"}>
+                            {val.comentarios}
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      <TableRow>
+                        <TableCell sx={{ textAlign: "left", borderRight: 0.5, width: 150 }}>
+                          <Typography fontWeight={"bold"}>Detalle de la Observación: </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography>{val.descripcionObservacion}</Typography>
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell sx={{ textAlign: "left", borderRight: 0.5, width: 150 }}>
+                          <Typography fontWeight={"bold"}>Accion a Realizar: </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography>{val.accioObservacion}</Typography>
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell sx={{ textAlign: "left", borderRight: 0.5, width: 150 }}>
+                          <Typography fontWeight={"bold"}>Responsable: </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography>{val.responsableControl}</Typography>
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell colSpan={2}>
+                          <Grid item key={index} xs={12} sm={6} md={6}>
+                            <CardMedia
+                              key={`image-${index}`}
+                              component="img"
+                              height="300"
+                              image={`${process.env.NEXT_PUBLIC_URL_MEDIA}/${process.env.NEXT_PUBLIC_URL_FOLDER_MAIN_S3}/${process.env.NEXT_PUBLIC_URL_FOLDER_SSA_S3}/inspecciones-planificadas/${val.imageObservacion}`}
+                              style={{ objectFit: "contain" }}
+                              alt={val.imageObservacion}
+                            />
+                          </Grid>
+                        </TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <Table size="small" sx={{ border: 1 }}>
+                    <TableBody>
+                      <TableRow key={index}>
+                        <TableCell sx={{ fontWeight: "bold", backgroundColor: "#EBEDEF" }} colSpan={2}>
+                          {val.preguntas}
+                        </TableCell>
+                      </TableRow>
+                      <TableRow key={`opcion-${index}`}>
+                        <TableCell sx={{ textAlign: "center", borderRight: 0.5, width: 150 }}>{val.checkOption}</TableCell>
+                        <TableCell>{val.comentarios}</TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                )}
+                <hr />
               </React.Fragment>
             ))}
 
-            {listaGeneral[0].idListActLiderazgo == 2 && (
+            {/*   {listaGeneral[0].idListActLiderazgo == 2 && (
               <Table size="small" sx={{ border: 1 }}>
                 <TableBody>
                   <TableRow>
@@ -197,7 +261,7 @@ export const DocModal: React.FC<interFace<any>> = ({ listaGeneral, listaPregunta
                   </TableRow>
                 </TableBody>
               </Table>
-            )}
+            )} */}
 
             {listaGeneral[0].idListActLiderazgo == 3 ||
               (listaGeneral[0].idListActLiderazgo == 4 && (
@@ -222,7 +286,8 @@ export const DocModal: React.FC<interFace<any>> = ({ listaGeneral, listaPregunta
                 </>
               ))}
 
-            <DividerCenter texto="Imágenes" />
+            {listaGeneral[0].idListActLiderazgo != 2 ? <DividerCenter texto="Imágenes" /> : ""}
+
             <Table size="small">
               <TableBody>
                 <TableRow key={194}>

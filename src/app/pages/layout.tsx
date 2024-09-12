@@ -39,15 +39,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <MainWrapper className="mainwrapper">
       <Sidebar isSidebarOpen={isSidebarOpen} isMobileSidebarOpen={isMobileSidebarOpen} onSidebarClose={() => setMobileSidebarOpen(false)} />
-
       <PageWrapper className="page-wrapper">
         <Header toggleMobileSidebar={() => setMobileSidebarOpen(true)} />
         <Suspense>
           <ThemeProvider>
-            <Container
-              maxWidth="xl"
-              sx={{ maxWidth: "1200px" }}
-            >
+            <Container maxWidth="xl" sx={{ maxWidth: "1200px" }}>
               {/* CONTENEDOR MODULOS */}
               <Box sx={{ minHeight: "calc(100vh - 170px)" }}>{children}</Box>
 

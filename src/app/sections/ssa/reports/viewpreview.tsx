@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Dialog, DialogContent, Modal } from "@mui/material";
-import { DocModal } from "./modalview";
+import { DocModal } from "./viewModal";
 
 export default function PreviewReport({ idPrograma }: { idPrograma: number }) {
   const authCredentials = {

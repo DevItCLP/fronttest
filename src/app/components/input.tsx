@@ -27,7 +27,7 @@ interface InputTextProps {
 }
 
 /* EJEMPLO DE USO  
-  <InputTextCC register={register} label=" Programa" icon={<AlarmAddRoundedIcon />} type="text" name="programa" placeholder="Liderazgo CLP" required={true} errors={errors} />
+  <InputTextCC register={register} label=" Programa" icon={<AlarmAddRoundedIcon />} type="text" name="programa" required={true} errors={errors} />
  */
 export const InputTextCC: React.FC<InputTextProps> = ({ register, label, icon, type, name, size, required, errors }) => {
   return (
@@ -158,7 +158,7 @@ export const InputPassCC: React.FC<InputPassProps> = ({ register, label, name, s
 interface InputRadioProps {
   register: any;
   errors: any;
-  label: string;
+  label?: string;
   icon?: any;
   name: string;
   required: boolean;
@@ -186,6 +186,41 @@ export const InputRadiotCC: React.FC<InputRadioProps> = ({ register, label, icon
             control={<Radio />}
             label="NO"
           />
+        </RadioGroup>
+      </FormControl>
+      {errors[name] && typeof errors[name].message === "string" && <Typography color="error">{errors[name].message}</Typography>}
+    </div>
+  );
+};
+export const _InputRadiotCC: React.FC<InputRadioProps> = ({ register, label, name, required, errors }) => {
+  return (
+    <div>
+      <FormControl>
+        <RadioGroup row aria-labelledby="demo-row-radio-buttons-group-label" name={name} id={name}>
+          <Box>
+            <FormControlLabel
+              {...register(name, {
+                required: { value: required, message: `${label} is required` },
+              })}
+              value="D.C.I"
+              control={<Radio />}
+              label="D.C.I"
+            />
+            <br />
+            <Typography color={"gray"}>Descripción de condición insegura</Typography>
+          </Box>
+          <Box ml={3}>
+            <FormControlLabel
+              {...register(name, {
+                required: { value: required, message: `${label} is required` },
+              })}
+              value="D.A.I"
+              control={<Radio />}
+              label="D.A.I"
+            />
+            <br />
+            <Typography color={"gray"}>Descripción del acto inseguro</Typography>
+          </Box>
         </RadioGroup>
       </FormControl>
       {errors[name] && typeof errors[name].message === "string" && <Typography color="error">{errors[name].message}</Typography>}

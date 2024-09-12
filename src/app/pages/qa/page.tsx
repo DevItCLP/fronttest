@@ -6,7 +6,7 @@
 
 "use client";
 
-import QaView from "@/app/sections/qa/view/qa-view";
+import QaView from "@/app/sections/qa/view/viewQa";
 
 export default function mainQA() {
   return <QaView />;

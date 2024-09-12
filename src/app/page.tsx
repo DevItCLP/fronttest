@@ -15,7 +15,7 @@ const Login = () => {
   return (
     <Suspense>
       <ThemeProvider>
-        <PageContainer title="Zami" description="this is login">
+        <PageContainer title="ZamiCLP" description="this is login">
           <Auth />
         </PageContainer>
       </ThemeProvider>

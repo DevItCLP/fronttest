@@ -8,14 +8,12 @@ import {
   FirstPage,
   LastPage,
   Checklist,
-  Article,
   PostAdd,
-  List,
   FileCopy,
   FormatListNumbered,
   Check,
-  DoneAll,
   CheckCircleOutline,
+  Article,
   NoteAdd,
   Task,
   TaskAlt,
@@ -41,28 +39,31 @@ import {
 } from "@mui/material";
 import { Steps, Panel } from "rsuite";
 import BaseCard from "../../components/shared/BaseCard";
-import { UploaderCC } from "../../components/uploader";
+import { UploaderMinCC } from "../../components/uploader";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import PageContainer from "../../components/container/PageContainer";
 import { InputRadiotCC, InputTextAreaCC, InputTextCC } from "../../components/input";
-import { DateCC, TimeCC } from "../../components/date-hour";
-import { SelectCC } from "../../components/select-option";
+import { DateCC } from "../../components/date-hour";
+import { SelectCC, SelectSimple } from "../../components/select-option";
 import { GetProgramas, GetTurnos, GetLugarObs, GetProyectos, GetAreas, GetPreguntas } from "@/app/api/dataApiComponents";
-import axios from "axios";
-import { SweetNotifyError, SweetNotifySuccess } from "@/app/components/sweet-notificacion";
+import { useResponsive } from "@/hooks/use-responsive";
 import { Account } from "@/app/_mock/account";
-import PreviewReport from "./reports/viewpreview";
+import { SweetNotifyError, SweetNotifySuccess, SweetNotifySuccesss } from "@/app/components/sweet-notificacion";
+import axios from "axios";
+import PreviewReport from "./reports/viewPreview";
+import { saveAsclFull, uploadImagesS3 } from "@/app/controllers/ssa/ControllerAscl";
 
 //---------------------------------------------------------
 
-export default function FormRS() {
+export default function FormSTL() {
   const account = Account();
 
   const authCredentials = {
     username: process.env.NEXT_PUBLIC_USER || "",
     password: process.env.NEXT_PUBLIC_PASS || "",
   };
+  const upLg = useResponsive("up", "lg");
 
   const [listaAreas, setlistaAreas] = useState<any[]>([]);
   const [listaProgramas, setlistaProgramas] = useState<any[]>([]);
@@ -70,17 +71,20 @@ export default function FormRS() {
   const [listaTurnos, setlistaTurnos] = useState<any[]>([]);
   const [listaLugarObs, setlistaLugarObs] = useState<any[]>([]);
   const [preguntas, setlistaPreguntas] = useState<any[]>([]);
-  //----------------------------------------------------------------
+  //---------------------------------------------------------------------
   const [datospreview, setDatosPreview] = useState<any[]>([]);
+  const [datospreview2, setDatosPreview2] = useState<any[]>([]);
   const [imagespreview, setImagesPreview] = useState<any[]>([]);
   const [alldatosform, setAlldatosForm] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(0);
   const [step, setStep] = useState(0);
-  const [namePanel, setnamePanel] = useState(" : Informacion General");
+  const [namePanel, setnamePanel] = useState(" : Información General");
   //-------------------------------------
   const [showReport, setShowReport] = useState(false);
   const [idPrograma, setIdPrograma] = useState(0);
 
+  const folderModule: string = "stl";
+  const ruta: string = `${process.env.NEXT_PUBLIC_URL_FOLDER_MAIN_S3}/` + `${process.env.NEXT_PUBLIC_URL_FOLDER_SSA_S3}/` + folderModule;
   const {
     register,
     control,
@@ -108,150 +112,87 @@ export default function FormRS() {
     const lugares = await GetLugarObs();
     const turnos = await GetTurnos();
     const proyectos = await GetProyectos();
-    const preg = await GetPreguntas(1);
+    const preg = await GetPreguntas(4);
     setlistaAreas(areas);
-    setlistaProgramas(programas);
     setlistaProyectos(proyectos);
+    setlistaProgramas(programas);
     setlistaTurnos(turnos);
     setlistaLugarObs(lugares);
     setlistaPreguntas(preg);
   }
 
-  const registrarProceso = handleSubmit(async (data: any) => {
-    if (showForm === 2) {
-      // console.log("datos a guardar en la db", data);
-
-      const datos = {
-        programa: { idPrograma: data.programa },
-        fecha: data.fecha,
-        duracion: data.duracion, //null
-        proyecto: { idProyecto: data.proyecto },
-        area: { idArea: data.area },
-        lugarObservacion: { idLugarObser: data.lugarobs },
-        turno: { idTurno: data.turno },
-        areaEspecifica: data.areaespecifica, //null
-        nroParticipantes: data.participantes, //null
-        //-----------------------------------------
-        tema: null, //null
-        desarrolloInteraccion: null, //null
-
-        //----staticos--------
-        statusAscl: 2,
-        acslGeneralAct: { idListActLiderazgo: 1 },
-        usuarios: { idUser: account.idUser },
-      };
-      try {
-        //console.log("datos a guardar en la db", datos);
-        let response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/ascl/save-ascl`, datos, { auth: authCredentials });
-        //alert(response.data.message);
-        //console.log(response.data.object);
-
-        await registrarPreguntas(data, response.data.object.idAscl);
-        const responseMedia = await registrarMedia(data, response.data.object.idAscl);
-        const responseMediaDet = await registrarMediaDet(data.imagenes, responseMedia.idMedia, response.data.object.idAscl);
-        if (responseMediaDet) {
-          onNext();
-          setIdPrograma(response.data.object.idAscl);
-          //Cargamos las imagenes a BUCKET S3
-          await uploadImagesS3(data.imagenes, response.data.object.idAscl);
-        } else {
-          SweetNotifyError({ message: "A ocurrido un error al cargar las imagenes" });
-        }
-      } catch (error) {
-        console.error("Error de comunicacion con el servicio amazonas", error);
-      }
+  const saveASCL = handleSubmit((data) => {
+    if (showForm === 0) {
+      onNext();
     } else if (showForm === 1) {
       //console.log(data);
       getDatosPreview(data);
       onNext();
-    } else {
-      onNext();
+    } else if (showForm === 2) {
+      //console.log(data);
+      save(data);
     }
   });
 
-  async function registrarPreguntas(data: any, idAscl: any) {
-    const datos = preguntas.map((val: any) => ({
-      idActLiderazgoAdicional: {
-        idActLiderazAdic: val.id,
-      },
-      idAsclGeneral: {
-        idAscl: idAscl,
-      },
+  async function save(data: any) {
+    const datosMediaDet = data.imagenes.map((val: any) => ({
+      s3Url: `/${ruta}/`,
+      nameImg: val.blobFile.name,
+      //idAllMedia: { idMedia: idMedia },Este dato lo agarramos en el backend una vez registrado la entidad AllMedia
+    }));
+    const datosMedia = {
+      //idAsclGeneral: { idAscl: 000000 },Este dato lo agarramos en el backend una vez registrado el proceso
+      descripcionMedia: "N/A",
+      accionMedia: data.accion,
+      nesesidadMedia: data.necesidad,
+      compromisoMedia: data.compromiso,
+      statusMedia: "1",
+      datosMediaDet: datosMediaDet,
+    };
+
+    const datosDetalle = preguntas.map((val: any) => ({
+      idActLiderazgoAdicional: { idActLiderazAdic: val.id },
+      //idAsclGeneral: { idAscl: 000000 },Este dato lo agarramos en el backend una vez registrado el proceso
       checkOption: data[`preg_${val.id}`],
       comentarios: data[`coment_${val.id}`],
       statusAcslDet: 2,
     }));
-    // console.log(datos);
-    try {
-      let response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/ascl/save-ascl-det`, datos, { auth: authCredentials });
-      return response.data.status == "success" ? true : false;
-    } catch (error) {
-      console.error("Error de comunicacion con el servicio amazonas", error);
-    }
-  }
 
-  async function registrarMedia(data: any, idAscl: any) {
-    const datos = {
-      idAcslGeneral: {
-        idAscl: idAscl,
-      },
-      descripcionMedia: "N/A",
-      accionMedia: "N/A",
-      nesesidadMedia: "N/A",
-      compromisoMedia: "N/A",
-      statusMedia: "1",
+    const datos: _saveAsclType = {
+      programa: { idPrograma: data.programa },
+      fecha: data.fecha,
+      duracion: data.duracion,
+      proyecto: { idProyecto: data.proyecto },
+      area: { idArea: data.area },
+      lugarObservacion: { idLugarObser: data.lugarobs },
+      turno: { idTurno: data.turno },
+      areaEspecifica: data.areaespecifica,
+      tema: data.tema,
+      desarrolloInteraccion: data.describeinteraccion,
+      statusAscl: 2,
+      acslGeneralAct: { idListActLiderazgo: 4 },
+      usuarios: { idUser: account.idUser },
+      datosAsclDetalle: datosDetalle,
+      datosAllMedia: datosMedia,
     };
-    //console.log(datos);
     try {
-      let response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/ascl/save-media`, datos, { auth: authCredentials });
-      return response.data.status == "success" ? response.data.object : false;
-    } catch (error) {
-      console.error("Error de comunicacion con el servicio amazonas", error);
-    }
-  }
+      const response: reponseSaveAscl | undefined = await saveAsclFull(datos);
 
-  async function registrarMediaDet(imagenes: any, idMedia: any, id: any) {
-    const datos = imagenes.map((val: any) => ({
-      s3Url: "/go-zami/ssa/reu-seguimiento/",
-      nameImg: `${id}_${val.blobFile.name}`,
-      idAllMedia: {
-        idMedia: idMedia,
-      },
-    }));
-
-    try {
-      //console.log("datos imagenes: ", datos);
-      let response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/ascl/save-media-det`, datos, { auth: authCredentials });
-      return response.data.status == "success" ? true : false;
-    } catch (error) {
-      console.error("Error de comunicacion con el servicio amazonas", error);
-    }
-  }
-
-  type ImagesType = {
-    blobFile: File;
-  };
-  const uploadImagesS3 = async (images: ImagesType[], id: any): Promise<void> => {
-    images.map(async (val) => {
-      try {
-        const formData = new FormData();
-        formData.append("image", val.blobFile);
-        formData.append("ruta", "go-zami/ssa/reu-seguimiento/");
-        formData.append("id", id);
-        const headers = {
-          "Content-Type": "multipart/form-data",
-        };
-
-        const { data } = await axios.post(`${process.env.NEXT_PUBLIC_HOST_URL}/api/s3`, formData, { headers });
-        if (data.success) {
-          console.log(data.message, data.data.url);
-        }
-      } catch (error) {
-        console.log(error);
-        SweetNotifyError({ message: "Error al comunicarse con s3: " + error });
+      if (response) {
+        SweetNotifySuccesss({ message: "Documento registrado exitosamente" });
+        onNext();
+        const idStl = response.object.idAscl;
+        setIdPrograma(idStl);
+        await uploadImagesS3(data.imagenes, idStl, ruta);
+      } else {
+        SweetNotifyError({
+          message: "A ocurrido un error al cargar registrar el documento",
+        });
       }
-    });
-  };
+    } catch (error) {
+      console.error("Error de comunicacion con el servicio amazonas", error);
+    }
+  }
 
   function getDatosPreview(data: any) {
     let preview = [
@@ -262,10 +203,6 @@ export default function FormRS() {
       {
         key: "Fecha de la Reunion",
         value: data.fecha,
-      },
-      {
-        key: "Hora del la Reunion",
-        value: data.duracion,
       },
       {
         key: "Proyecto",
@@ -288,18 +225,36 @@ export default function FormRS() {
         value: data.areaespecifica,
       },
       {
-        key: "Número de Participantes",
-        value: data.participantes,
+        key: "Tema",
+        value: data.tema,
+      },
+      {
+        key: "Desarrollo de la interacción",
+        value: data.describeinteraccion,
       },
       {
         key: "Actividad de Lideraszgo",
-        value: "REUNIONES DE SEGUIMIENTO",
+        value: "Análisis de Riesgo de la Tarea",
       },
-      ,
+    ];
+    let preview2 = [
+      {
+        key: "Necesidad",
+        value: data.necesidad,
+      },
+      {
+        key: "Accion",
+        value: data.accion,
+      },
+      {
+        key: "Compromiso ",
+        value: data.compromiso,
+      },
     ];
     setAlldatosForm(data);
     setImagesPreview(data.imagenes);
     setDatosPreview(preview);
+    setDatosPreview2(preview2);
     //console.log("previer", preview);
     //console.log("imagespreview ", data.imagenes);
   }
@@ -315,15 +270,15 @@ export default function FormRS() {
   };
 
   const newRegister = () => {
-    window.location.href = `${process.env.NEXT_PUBLIC_HOST_URL}/pages/ssa/formrs `;
+    window.location.href = `${process.env.NEXT_PUBLIC_HOST_URL}/pages/ssa/formstl `;
     //route.push("/pages/ssa/formopt");
   };
 
   return (
-    <PageContainer title="SSA - Reuniones" description="SSA - Reuniones de seguimiento">
+    <PageContainer title="SSA - ART" description="Análisis de Riesgo de la Tarea">
       <Container maxWidth="xl">
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
-          <Typography variant="h4">SSA - Reuniones de seguimiento</Typography>
+          <Typography variant="h4">Análisis de Riesgo de la Tarea</Typography>
         </Stack>
         <Divider sx={{ borderStyle: "revert", m: 2 }} />
 
@@ -334,28 +289,32 @@ export default function FormRS() {
                 <div>
                   <Box
                     component="form"
-                    onSubmit={registrarProceso}
+                    onSubmit={saveASCL}
                     sx={{
                       alignItems: "center",
-                      maxWidth: 900,
+
                       mx: "auto",
                       mt: 2,
                     }}
                   >
                     <div>
-                      <Steps current={step}>
-                        <Steps.Item title={step === 0 ? "In Progress" : step === 1 || 2 ? "Finished" : "Waiting"} description="Información General" />
-                        <Steps.Item title={step === 1 ? "In Progress" : step === 2 ? "Finished" : "Waiting"} description="Información adicional" />
-                        <Steps.Item title={step === 2 ? "In Progress" : step === 3 ? "Finished" : "Waiting"} description="Revisión y finalización" />
+                      <Steps current={step} small>
+                        <Steps.Item title={step === 0 ? "Información General" : step === 1 || step === 2 ? "Finalizado" : "Por completar"} />
+                        <Steps.Item title={step === 1 ? "Información adicional" : step === 2 ? "Finalizado" : "Por completar"} />
+                        <Steps.Item title={step === 2 ? "Revisión y finalizar" : step === 3 ? "Finalizado" : "Por completar"} />
                       </Steps>
                       <hr />
 
-                      <Panel header={<Typography>Reuniones de seguimiento - Sección {step + 1 + namePanel}</Typography>}>
+                      <Panel header={<Typography style={{ fontWeight: "bold", color: "#546E7A" }}>Sección {step + 1 + namePanel}</Typography>}>
                         {showForm == 0 && (
                           <Box component="section">
                             <Grid container spacing={3}>
-                              <Grid item xs={12} md={12}>
-                                <SelectCC
+                              <Grid item xs={12} sm={6} md={4}>
+                                <DateCC _control={control} _setValue={setValue} label="Fechas" name="fecha" required={true} errors={errors} />
+                              </Grid>
+
+                              <Grid item xs={12} sm={6} md={4}>
+                                <SelectSimple
                                   _control={control}
                                   _setValue={setValue}
                                   label=" Programa"
@@ -366,15 +325,9 @@ export default function FormRS() {
                                   listaData={listaProgramas}
                                 />
                               </Grid>
-                              <Grid item xs={12} md={6}>
-                                <DateCC _control={control} _setValue={setValue} label="Fechas" name="fecha" required={true} errors={errors} />
-                              </Grid>
-                              <Grid item xs={12} md={6}>
-                                <TimeCC _control={control} _setValue={setValue} label="Duracion" name="duracion" required={true} errors={errors} />
-                              </Grid>
 
-                              <Grid item xs={12} md={6}>
-                                <SelectCC
+                              <Grid item xs={12} sm={6} md={4}>
+                                <SelectSimple
                                   _control={control}
                                   _setValue={setValue}
                                   label=" Proyecto"
@@ -386,8 +339,8 @@ export default function FormRS() {
                                 />
                               </Grid>
 
-                              <Grid item xs={12} md={6}>
-                                <SelectCC
+                              <Grid item xs={12} sm={6} md={4}>
+                                <SelectSimple
                                   _control={control}
                                   _setValue={setValue}
                                   label=" Areas"
@@ -399,8 +352,8 @@ export default function FormRS() {
                                 />
                               </Grid>
 
-                              <Grid item xs={12} md={6}>
-                                <SelectCC
+                              <Grid item xs={12} sm={6} md={4}>
+                                <SelectSimple
                                   _control={control}
                                   _setValue={setValue}
                                   label=" Lugar de Observacion"
@@ -412,8 +365,8 @@ export default function FormRS() {
                                 />
                               </Grid>
 
-                              <Grid item xs={12} md={6}>
-                                <SelectCC
+                              <Grid item xs={12} sm={6} md={4}>
+                                <SelectSimple
                                   _control={control}
                                   _setValue={setValue}
                                   label=" Turno"
@@ -425,7 +378,7 @@ export default function FormRS() {
                                 />
                               </Grid>
 
-                              <Grid item xs={12} md={9}>
+                              <Grid item xs={12} sm={6} md={4}>
                                 <InputTextCC
                                   register={register}
                                   label=" Área especifica"
@@ -437,16 +390,30 @@ export default function FormRS() {
                                   errors={errors}
                                 />
                               </Grid>
-                              <Grid item xs={12} md={3}>
+
+                              <Grid item xs={12} sm={6} md={4}>
                                 <InputTextCC
                                   register={register}
-                                  label=" # Participantes"
-                                  icon={<FormatListNumbered />}
-                                  type="number"
-                                  name="participantes"
+                                  label=" Tema"
+                                  icon={<PostAdd />}
+                                  type="text"
+                                  name="tema"
                                   size="small"
                                   required={true}
                                   errors={errors}
+                                />
+                              </Grid>
+
+                              <Grid item xs={12}>
+                                <InputTextAreaCC
+                                  register={register}
+                                  label="Desarrollo de la interacción"
+                                  icon={<FormatListNumbered />}
+                                  name="describeinteraccion"
+                                  size="small"
+                                  required={true}
+                                  errors={errors}
+                                  rows={3}
                                 />
                               </Grid>
                             </Grid>
@@ -480,18 +447,150 @@ export default function FormRS() {
                                   </Grid>
                                 );
                               })}
+                              <Divider sx={{ borderStyle: "revert", m: 2 }} />
+                              {upLg ? (
+                                <TableContainer component={Paper} style={{ border: "1px solid #EBEDEF", padding: "5px" }}>
+                                  <Table aria-label="a dense table">
+                                    <TableHead>
+                                      <TableRow>
+                                        <TableCell>
+                                          <Typography variant="h4">Necesidad identificada</Typography>
+                                        </TableCell>
+                                        <TableCell>
+                                          <Typography variant="h4">Acción</Typography>
+                                        </TableCell>
+                                        <TableCell>
+                                          <Typography variant="h4">Compromiso</Typography>
+                                        </TableCell>
+                                      </TableRow>
+                                    </TableHead>
 
-                              <Grid item xs={12} md={12}>
-                                <UploaderCC
-                                  _control={control}
-                                  label=" Adjuntar fotografias"
-                                  name="imagenes"
-                                  required={true}
-                                  multiple={true}
-                                  errors={errors}
-                                  shouldFocus={false}
-                                />
-                              </Grid>
+                                    <TableBody>
+                                      <TableRow>
+                                        <TableCell>
+                                          <InputTextAreaCC
+                                            register={register}
+                                            label="Necesidad"
+                                            icon={<FileCopy />}
+                                            name="necesidad"
+                                            required={true}
+                                            errors={errors}
+                                            rows={3}
+                                          />
+                                        </TableCell>
+                                        <TableCell>
+                                          <InputTextAreaCC
+                                            register={register}
+                                            label="Acción"
+                                            icon={<FileCopy />}
+                                            name="accion"
+                                            required={true}
+                                            errors={errors}
+                                            rows={3}
+                                          />
+                                        </TableCell>
+                                        <TableCell>
+                                          <InputTextAreaCC
+                                            register={register}
+                                            label="Compromiso"
+                                            icon={<FileCopy />}
+                                            name="compromiso"
+                                            required={true}
+                                            errors={errors}
+                                            rows={3}
+                                          />
+                                        </TableCell>
+                                      </TableRow>
+                                      <TableRow>
+                                        <TableCell colSpan={2}>
+                                          Adjuntar Fotografías
+                                          <Grid item xs={12} md={12}>
+                                            <UploaderMinCC
+                                              _control={control}
+                                              label=" Adjuntar fotografias"
+                                              name="imagenes"
+                                              required={true}
+                                              multiple={true}
+                                              errors={errors}
+                                              shouldFocus={false}
+                                            />
+                                          </Grid>
+                                        </TableCell>
+                                      </TableRow>
+                                    </TableBody>
+                                  </Table>
+                                </TableContainer>
+                              ) : (
+                                <TableContainer component={Paper} style={{ border: "1px solid #EBEDEF", padding: "5px" }}>
+                                  <Table aria-label="a dense table">
+                                    <TableHead>
+                                      <TableRow>
+                                        <TableCell colSpan={3}>
+                                          <Typography variant="h4">Necesidad - Acción - Compromiso</Typography>
+                                        </TableCell>
+                                      </TableRow>
+                                    </TableHead>
+
+                                    <TableBody>
+                                      <TableRow>
+                                        <TableCell>
+                                          <InputTextAreaCC
+                                            register={register}
+                                            label="Necesidad"
+                                            icon={<FileCopy />}
+                                            name="necesidad"
+                                            required={true}
+                                            errors={errors}
+                                            rows={3}
+                                          />
+                                        </TableCell>
+                                      </TableRow>
+                                      <TableRow>
+                                        <TableCell>
+                                          <InputTextAreaCC
+                                            register={register}
+                                            label="Acción"
+                                            icon={<FileCopy />}
+                                            name="accion"
+                                            required={true}
+                                            errors={errors}
+                                            rows={3}
+                                          />
+                                        </TableCell>
+                                      </TableRow>
+                                      <TableRow>
+                                        <TableCell>
+                                          <InputTextAreaCC
+                                            register={register}
+                                            label="Compromiso"
+                                            icon={<FileCopy />}
+                                            name="compromiso"
+                                            required={true}
+                                            errors={errors}
+                                            rows={3}
+                                          />
+                                        </TableCell>
+                                      </TableRow>
+                                      <TableRow>
+                                        <TableCell colSpan={3}>
+                                          Adjuntar Fotografías
+                                          <Grid item xs={12} md={12}>
+                                            <UploaderMinCC
+                                              _control={control}
+                                              label=" Adjuntar fotografias"
+                                              name="imagenes"
+                                              required={true}
+                                              multiple={true}
+                                              errors={errors}
+                                              shouldFocus={false}
+                                            />
+                                          </Grid>
+                                        </TableCell>
+                                      </TableRow>
+                                    </TableBody>
+                                  </Table>
+                                </TableContainer>
+                              )}
                             </Grid>
                           </Box>
                         )}
@@ -504,7 +603,7 @@ export default function FormRS() {
                                     <TableHead>
                                       <TableRow>
                                         <TableCell width="350px">
-                                          <Typography variant="h3">
+                                          <Typography variant="h6">
                                             <CheckCircleOutline />
                                             Datos Generales
                                           </Typography>
@@ -530,7 +629,7 @@ export default function FormRS() {
                                     <TableHead>
                                       <TableRow>
                                         <TableCell width="700px">
-                                          <Typography variant="h3">
+                                          <Typography variant="h6">
                                             <CheckCircleOutline />
                                             Acciones
                                           </Typography>
@@ -563,6 +662,16 @@ export default function FormRS() {
                                           </TableRow>
                                         );
                                       })}
+                                      {datospreview2.map((val, index) => {
+                                        return (
+                                          <TableRow key={index}>
+                                            <TableCell component="th" scope="row">
+                                              {val.key}:
+                                            </TableCell>
+                                            <TableCell>{val.value}</TableCell>
+                                          </TableRow>
+                                        );
+                                      })}
                                       <TableRow>
                                         <TableCell colSpan={2}>
                                           <Grid container spacing={2} p={2}>
@@ -572,9 +681,7 @@ export default function FormRS() {
                                                   component="img"
                                                   height="100"
                                                   image={URL.createObjectURL(image.blobFile)}
-                                                  style={{
-                                                    objectFit: "contain",
-                                                  }} // Esto asegura que la imagen se ajuste al tamaño especificado
+                                                  style={{ objectFit: "contain" }} // Esto asegura que la imagen se ajuste al tamaño especificado
                                                   alt={image.name}
                                                 />
                                               </Grid>
@@ -599,13 +706,13 @@ export default function FormRS() {
                             <Task sx={{ fontSize: 200, color: "#566573" }} />
                             <br />
                             <Button onClick={showReporte} variant="contained" color="primary">
-                              <Article />  Ver Reporte
+                              <Article /> Ver Reporte
                             </Button>
                             {showReport && <PreviewReport idPrograma={idPrograma} />}
                             <br />
                             <br />
                             <Button onClick={newRegister} variant="contained" color="success">
-                              <NoteAdd />  Nuevo
+                              <NoteAdd /> Nuevo
                             </Button>
                           </Box>
                         )}
@@ -616,17 +723,17 @@ export default function FormRS() {
                             <div>
                               <ButtonGroup>
                                 <Button color="primary" onClick={onPrevious} disabled={step === 0} startIcon={<FirstPage />}>
-                                  Previous
+                                  Regresar
                                 </Button>
                                 <Button type="submit" color="primary" disabled={step === 2} endIcon={<LastPage />}>
-                                  Next
+                                  Siguiente
                                 </Button>
                               </ButtonGroup>
                             </div>
                           )}
                           <div>
                             {showForm == 2 && (
-                              <Button color="primary" variant="contained" type="submit" startIcon={<Checklist />}>
+                              <Button color="success" variant="contained" type="submit" startIcon={<Checklist />}>
                                 Finalizar
                               </Button>
                             )}

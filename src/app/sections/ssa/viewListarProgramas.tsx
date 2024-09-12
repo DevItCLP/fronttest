@@ -18,13 +18,17 @@ import axios from "axios";
 import { GetActividadLiderazgo, GetProgramas, GetTurnos, GetLugarObs, GetProyectos, GetAreas } from "@/app/api/dataApiComponents";
 import { DataGrid, GridColDef, GridToolbar } from "@mui/x-data-grid";
 import { SweetNotifyWarning } from "@/app/components/sweet-notificacion";
-import { DocModal } from "@/app/sections/ssa/reports/modalview";
+import { DocModal } from "@/app/sections/ssa/reports/viewModal";
 import Swal from "sweetalert2";
 import { Account } from "@/app/_mock/account";
+import { getObservacionesEncontradas, getRecordsParams, viewReportAascl } from "@/app/controllers/ssa/ControllerAscl";
+import NoteAltIcon from "@mui/icons-material/NoteAlt";
+import { ModalViewCierre } from "./reports/viewModalCierre";
 
 //-------------------------------------------------------------------
 
 export default function ReportSSA() {
+  //========================LISTAS===============================================
   const [showTable, setShowTable] = useState(false);
   const [listaProgramas, setlistaProgramas] = useState<any[]>([]);
   const [listaActividades, setlistaActividades] = useState<any[]>([]);
@@ -39,8 +43,14 @@ export default function ReportSSA() {
   const [listaPreguntas, setListaPreguntas] = useState<any[]>([]);
   const [listaImagenes, setListaImagenes] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
+  const [open2, setOpen2] = useState(false);
+  const [listaDataReporte, setListaDataReporte] = useState<any[]>([]);
+
+  //====================CONSTANTES GLOBALES=====================================
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
+  const handleOpen2 = () => setOpen2(true);
+  const handleClose2 = () => setOpen2(false);
 
   const authCredentials = {
     username: process.env.NEXT_PUBLIC_USER || "",
@@ -48,7 +58,6 @@ export default function ReportSSA() {
   };
   const account = Account();
 
-  //const responsedata = ResponseData();
   const {
     control,
     setValue,
@@ -57,6 +66,7 @@ export default function ReportSSA() {
     handleSubmit,
   } = useForm();
 
+  //============================FUNCIONES============================================
   useEffect(() => {
     loadDataApi();
   }, []);
@@ -77,20 +87,10 @@ export default function ReportSSA() {
     setlistaActividades(actividad);
   }
 
-  /*   async function getAllRecords() {
-    let response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/ascl/show-all-records`, { auth: authCredentials });
-    if (response.data) {
-      const listaData = response.data.object;
-
-      setlistaRegistros(listaData);
-    }
-  }
- */
   const getRegistros = handleSubmit(async (data: any) => {
     //console.log(data);
+
     let datos: any = {};
-    //TODO: EL KEY DE ESTO OBJETO DEBE SER EL MISMO QUE ESTA EN EL ENTITY DEL BACK (AQUI SE ESTA ARMNDO EL WHERE DATA)
-    //SALVO LAS FECHAS POR EL BETWEEN
     if (data.actividad != undefined) {
       datos.acslGeneralAct = data.actividad;
     }
@@ -113,26 +113,17 @@ export default function ReportSSA() {
       datos.fDesde = data.fechas[0];
       datos.fHasta = data.fechas[1];
     }
+    const response = await getRecordsParams(datos);
 
-    /*  const datos = Object.fromEntries(
-      Object.entries(data).filter(([key, value]) => value !== undefined)
-    ); */
-
-    try {
-      let response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/ascl/show-records-params`, datos, { auth: authCredentials });
-      if (response.data.status === "success") {
-        setShowTable(true);
-        const listaData = response.data.object;
-        setlistaRegistros(listaData);
-      } else {
-        setShowTable(false);
-        SweetNotifyWarning({
-          message: response.data.message,
-        });
-        //console.log("sssss. ", response.data);
-      }
-    } catch (error) {
-      console.error("error: ", error);
+    if (response?.status === "success") {
+      setShowTable(true);
+      const listaData = response?.object;
+      setlistaRegistros(listaData);
+    } else {
+      setShowTable(false);
+      SweetNotifyWarning({
+        message: response?.message,
+      });
     }
   });
 
@@ -142,7 +133,7 @@ export default function ReportSSA() {
   };
 
   const dataColumns: GridColDef[] = [
-    { field: "id", headerName: "ID", width: 70, renderCell: (params) => <>{zfill(params.value, 4)}</> },
+    { field: "id", headerName: "ID", width: 70, renderCell: (params) => <>{zfill(params.value, 5)}</> },
     {
       field: "acslGeneralActividad",
       headerName: "ACTIVIDAD LIDERAZGO",
@@ -160,7 +151,7 @@ export default function ReportSSA() {
     {
       field: "lugarObservacion",
       headerName: "LUGAR OBSERVACIÓN",
-      width: 300,
+      width: 250,
     },
     { field: "turno", headerName: "TURNO", width: 120 },
     { field: "duracion", headerName: "DURACIÓN", width: 120 },
@@ -168,15 +159,21 @@ export default function ReportSSA() {
     {
       field: "actions",
       headerName: "ACCIONES",
-      width: 150,
+      width: 200,
       sortable: false,
       renderCell: (parans) => (
         <>
           {parans.row.statusAscl == 2 && (
             <div>
-              <Button color="info" variant="contained" onClick={() => viewReport(parans.row.id)}>
+              <Button color="info" variant="contained" onClick={() => viewReporte(parans.row.id)}>
                 <RemoveRedEyeIcon />
               </Button>
+              {parans.row.idListActLiderazgo == 2 && (
+                <Button color="primary" variant="contained" onClick={() => viewReportObsCierre(parans.row.id)}>
+                  <NoteAltIcon />
+                </Button>
+              )}
+
               {account.role == "root" || account.role == "admin" ? (
                 <Button color="error" variant="contained" onClick={() => anularReport(parans.row.id)}>
                   <DeleteSweepIcon />
@@ -186,7 +183,7 @@ export default function ReportSSA() {
               )}
             </div>
           )}
-          <Button color="error" variant="contained" onClick={() => viewReport(parans.row.id)}>
+          <Button color="error" variant="contained" onClick={() => viewReporte(parans.row.id)}>
             <VisibilityOffIcon />
           </Button>
         </>
@@ -194,18 +191,30 @@ export default function ReportSSA() {
     },
   ];
 
-  async function viewReport(id: any) {
-    let response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/ascl/show-record-id/${id}`, { auth: authCredentials });
-
-    if (response.data.status == "success") {
-      const { listaDataGeneral, listaDataPreguntas, listaDataImages } = response.data.object;
-
+  const viewReporte = async (id: number) => {
+    const response = await viewReportAascl(id);
+    if (response.status == "success") {
+      const { listaDataGeneral, listaDataPreguntas, listaDataImages } = response.object;
       setListaGeneral(listaDataGeneral);
       setListaPreguntas(listaDataPreguntas);
       setListaImagenes(listaDataImages);
       handleOpen();
     }
+  };
+
+  async function viewReportObsCierre(id: any) {
+    handleOpen2();
+    const datos = {
+      idAscl: id,
+    };
+    try {
+      const response: ResponseObsEncontradasIp | undefined = await getObservacionesEncontradas(datos);
+      setListaDataReporte(response?.object ? response?.object : []);
+    } catch (error) {
+      console.error("Error de comunicacion con el servicio amazonas", error);
+    }
   }
+
   function anularReport(id: any) {
     Swal.fire({
       title: "Atención?",
@@ -235,6 +244,8 @@ export default function ReportSSA() {
           </DialogContent>
         </Dialog>
       </Modal>
+
+      <ModalViewCierre open={open2} handleClose={handleClose2} listaDataReporte={listaDataReporte} />
 
       <Box my={3} component="form" onSubmit={getRegistros}>
         <Grid container spacing={3}>

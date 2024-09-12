@@ -7,7 +7,7 @@
 "use client";
 
 import PageContainer from "@/app/components/container/PageContainer";
-import FormOPT from "@/app/sections/ssa/form-opt";
+import FormOPT from "@/app/sections/ssa/viewFormOpt";
 
 export default function pageOPT() {
   return (

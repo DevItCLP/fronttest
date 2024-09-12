@@ -33,7 +33,7 @@ export async function POST(req: any) {
       Body: (await image.arrayBuffer()) as Buffer,
       ContentType: image.type,
     };
-    console.log(params);
+
     const command = new PutObjectCommand(params);
     await s3Cliente.send(command); //Aqui se envia a cargar la imagen a S3
     const getObjectParams = {

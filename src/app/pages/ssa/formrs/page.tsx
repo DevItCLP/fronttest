@@ -7,7 +7,7 @@
 "use client";
 
 import PageContainer from "@/app/components/container/PageContainer";
-import FormRS from "@/app/sections/ssa/form-rs";
+import FormRS from "@/app/sections/ssa/viewFormRs";
 
 export default function pageRS() {
   return (
