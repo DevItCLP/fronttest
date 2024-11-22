@@ -11,6 +11,9 @@ const nextConfig = {
       },
     ],
   },
+  env: {
+    NEXTAUTH_URL: process.env.NEXTAUTH_URL, // Define NEXTAUTH_URL
+  },
 };
 
 export default nextConfig;
