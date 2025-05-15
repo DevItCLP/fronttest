@@ -101,7 +101,7 @@ export default function LoginView() {
         Login
       </LoadingButton>
       <Typography variant="body2" color="text.secondary" align="center">
-        {"Copyright © "} Departamento IT | CLP {new Date().getFullYear()}
+        {"Copyright © "} Departamento IT | CLP.cc {new Date().getFullYear()}
         {"."}
       </Typography>
     </form>
