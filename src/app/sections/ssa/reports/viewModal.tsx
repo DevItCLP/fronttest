@@ -50,12 +50,12 @@ export const DocModal: React.FC<interFace<any>> = ({ listaGeneral, listaPregunta
         <Box>
           {listaGeneral[0].statusAscl == 2 ? (
             <Typography variant="h5" color="#00A76F">
-              <CheckCircleOutlineIcon /> Documneto Archivado
+              <CheckCircleOutlineIcon /> Documento Archivado
             </Typography>
           ) : (
             <Typography variant="h5" color="error">
               <RemoveCircleIcon />
-              Documneto Anulado
+              Documento Anulado
             </Typography>
           )}
         </Box>
@@ -199,7 +199,7 @@ export const DocModal: React.FC<interFace<any>> = ({ listaGeneral, listaPregunta
                       </TableRow>
                       <TableRow>
                         <TableCell sx={{ textAlign: "left", borderRight: 0.5, width: 150 }}>
-                          <Typography fontWeight={"bold"}>Accion a Realizar: </Typography>
+                          <Typography fontWeight={"bold"}>Acción a Realizar: </Typography>
                         </TableCell>
                         <TableCell>
                           <Typography>{val.accioObservacion}</Typography>

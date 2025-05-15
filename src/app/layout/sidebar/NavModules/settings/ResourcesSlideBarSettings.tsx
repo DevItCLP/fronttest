@@ -32,13 +32,13 @@ export const itemssettings: itemsTitles[] = [
     title: "Áreas",
     icon: IconChecklist,
     idSubTitles: 1,
-    href: "#",
+    href: "/pages/settings/areas",
   },
   {
     id: uniqueId(),
     title: "Lugar de Observación",
     icon: IconFileAnalytics,
     idSubTitles: 1,
-    href: "#",
+    href: "/pages/settings/lugarObservacion",
   },
 ];

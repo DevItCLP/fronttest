@@ -38,7 +38,7 @@ const activities = [
 
 const DailyActivity = () => {
   return (
-    <DashboardCard title="Daily Activity">
+    <DashboardCard title="Actividad diaria">
       <Timeline
         sx={{
           p: 0,

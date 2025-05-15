@@ -1,5 +1,5 @@
 import axios from "axios";
-
+import { handleApiError } from "../controllers/common/ControllerCommon";
 //---------------------------------------------------------------
 
 const authCredentials = {
@@ -7,16 +7,12 @@ const authCredentials = {
   password: process.env.NEXT_PUBLIC_PASS || "",
 };
 
-// Define authentication credentials
-const username = process.env.NEXT_PUBLIC_USER; // Store your username in an environment variable
-const password = process.env.NEXT_PUBLIC_PASS; // Store your password in an environment variable
-
-// Encode credentials in base64
-const authHeader = `Basic ${Buffer.from(`${username}:${password}`).toString("base64")}`;
-
-export async function GetProgramas() {
+export async function GetProgramas(token: String) {
   try {
-    let response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/ascl/show-all-programas`, { auth: authCredentials });
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+    let response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/ascl/show-all-programas`, { headers });
     if (response.data) {
       const data = response.data.object;
       //alimento la constante lista
@@ -26,29 +22,37 @@ export async function GetProgramas() {
       }));
     }
   } catch (error) {
-    console.error("Error de comunicacion con el servicio ", error);
+    await handleApiError(error); // Reutiliza el manejo de errores
   }
 }
 
-export async function GetAreas() {
+export async function GetAreas(token: String) {
   try {
-    let response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/ascl/show-all-areas`, { auth: authCredentials });
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+    let response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/ascl/show-all-areas`, { headers });
     if (response.data) {
       const data = response.data.object;
       //alimento la constante lista
-      return data.map(({ idArea, nameArea }: { idArea: number; nameArea: string }) => ({
+      return data.map(({ idArea, nameArea, statusArea }: { idArea: number; nameArea: string; statusArea: number }) => ({
         label: nameArea,
         value: idArea.toString(),
+        nameArea: nameArea,
+        statusArea: statusArea,
       }));
     }
   } catch (error) {
-    console.error("Error de comunicacion con el servicio", error);
+    await handleApiError(error); // Reutiliza el manejo de errores
   }
 }
 
-export async function GetProyectos() {
+export async function GetProyectos(token: String) {
   try {
-    let response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/ascl/show-all-proyectos`, { auth: authCredentials });
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+    let response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/ascl/show-all-proyectos`, { headers });
     if (response.data) {
       const data = response.data.object;
       //alimento la constante lista
@@ -58,13 +62,16 @@ export async function GetProyectos() {
       }));
     }
   } catch (error) {
-    console.error("Error de comunicacion con el servicio ", error);
+    await handleApiError(error); // Reutiliza el manejo de errores
   }
 }
 
-export async function GetTurnos() {
+export async function GetTurnos(token: String) {
   try {
-    let response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/ascl/show-all-turno`, { auth: authCredentials });
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+    let response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/ascl/show-all-turno`, { headers });
     if (response.data) {
       const data = response.data.object;
       //alimento la constante lista
@@ -74,29 +81,49 @@ export async function GetTurnos() {
       }));
     }
   } catch (error) {
-    console.error("Error de comunicacion con el servicio ", error);
+    await handleApiError(error); // Reutiliza el manejo de errores
   }
 }
 
-export async function GetLugarObs() {
+export async function GetLugarObs(token: String) {
   try {
-    let response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/ascl/show-all-place`, { auth: authCredentials });
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+    let response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/ascl/show-all-place`, { headers });
     if (response.data) {
       const data = response.data.object;
       //alimento la constante lista
-      return data.map(({ idLugarObser, nameLugarObservacion }: { idLugarObser: number; nameLugarObservacion: string }) => ({
-        label: nameLugarObservacion,
-        value: idLugarObser.toString(),
-      }));
+      return data.map(
+        ({
+          idLugarObser,
+          nameLugarObservacion,
+          statusLugarObservacion,
+        }: {
+          idLugarObser: number;
+          nameLugarObservacion: string;
+          statusLugarObservacion: number;
+        }) => ({
+          id: idLugarObser,
+          nameLugarObservacion: nameLugarObservacion,
+          statusLugarObservacion: statusLugarObservacion,
+
+          label: nameLugarObservacion,
+          value: idLugarObser.toString(),
+        })
+      );
     }
   } catch (error) {
-    console.error("Error de comunicacion con el servicio ", error);
+    await handleApiError(error); // Reutiliza el manejo de errores
   }
 }
 
-export async function GetPreguntas(id: number) {
+export async function GetPreguntas(id: number, token: String) {
   try {
-    let response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/ascl/show-all-act-adicionales/${id}`, { auth: authCredentials });
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+    let response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/ascl/show-all-act-adicionales/${id}`, { headers });
     if (response.data) {
       const data = response.data.object;
       //alimento la constante lista
@@ -109,13 +136,16 @@ export async function GetPreguntas(id: number) {
       return lista;
     }
   } catch (error) {
-    console.error("Error de comunicacion con el servicio ", error);
+    await handleApiError(error); // Reutiliza el manejo de errores
   }
 }
 
-export async function GetActividadLiderazgo() {
+export async function GetActividadLiderazgo(token: String) {
   try {
-    let response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/ascl/show-all-act-liderazgo`, { auth: authCredentials });
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+    let response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/ascl/show-all-act-liderazgo`, { headers });
     if (response.data) {
       const data = response.data.object;
       //alimento la constante lista
@@ -125,12 +155,15 @@ export async function GetActividadLiderazgo() {
       }));
     }
   } catch (error) {
-    console.error("Error de comunicacion con el servicio ", error);
+    await handleApiError(error); // Reutiliza el manejo de errores
   }
 }
-export async function GetUsuarios() {
+export async function GetUsuarios(token: String) {
   try {
-    let response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/usuarios/show-usuarios/1`, { auth: authCredentials });
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+    let response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/usuarios/show-usuarios/1`, { headers });
     if (response.data) {
       const data = response.data.object;
       //alimento la constante lista
@@ -144,25 +177,32 @@ export async function GetUsuarios() {
       );
     }
   } catch (error) {
-    console.error("Error de comunicacion con el servicio ", error);
+    await handleApiError(error); // Reutiliza el manejo de errores
   }
 }
-export async function GetAllUsuarios() {
+export async function GetAllUsuarios(token: String) {
   try {
-    let response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/usuarios/show-users`, { auth: authCredentials });
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+
+    let response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/usuarios/show-users`, { headers });
     if (response.data) {
       const data = response.data.object;
       //alimento la constante lista
       return data;
     }
   } catch (error) {
-    console.error("Error de comunicacion con el servicio ", error);
+    await handleApiError(error); // Reutiliza el manejo de errores
   }
 }
 
-export async function GetRoles() {
+export async function GetRoles(token: String) {
   try {
-    let response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/roles/show-roles/1`, { auth: authCredentials });
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+    let response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/roles/show-roles/1`, { headers });
     if (response.data) {
       const data = response.data.object;
       //alimento la constante lista
@@ -172,6 +212,44 @@ export async function GetRoles() {
       }));
     }
   } catch (error) {
-    console.error("Error de comunicacion con el servicio ", error);
+    await handleApiError(error); // Reutiliza el manejo de errores
+  }
+}
+export async function GetModulos(token: String) {
+  try {
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+    let { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/modulos/show-modules/1`, { headers });
+    if (data) {
+      const dataModulos = data.object;
+      //alimento la constante lista
+      return dataModulos.map(
+        ({
+          idModulo,
+          nombreModulo,
+          descripcionModulo,
+          iconoModulo,
+          pathUrl,
+          colorModulo,
+        }: {
+          idModulo: number;
+          nombreModulo: string;
+          descripcionModulo: string;
+          iconoModulo: string;
+          pathUrl: string;
+          colorModulo: string;
+        }) => ({
+          label: nombreModulo,
+          value: idModulo.toString(),
+          descripcionModulo: descripcionModulo,
+          iconoModulo: iconoModulo,
+          pathUrl: pathUrl,
+          colorModulo: colorModulo,
+        })
+      );
+    }
+  } catch (error) {
+    await handleApiError(error); // Reutiliza el manejo de errores
   }
 }

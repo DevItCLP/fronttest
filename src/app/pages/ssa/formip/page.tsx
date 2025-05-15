@@ -7,7 +7,7 @@
 "use client";
 
 import PageContainer from "@/app/components/container/PageContainer";
-import FormIP from "@/app/sections/ssa/viewFormIp";
+import FormIP from "@/app/sections/ssa/view/opaci/viewFormIp";
 
 export default function pageIP() {
   return (

@@ -15,9 +15,13 @@ import {
 import { FirstPage } from "@mui/icons-material";
 import { useEffect, useRef, useState } from "react";
 import { Controller } from "react-hook-form";
-import {createFilterOptions} from "@mui/joy";
-import {register} from "next/dist/client/components/react-dev-overlay/pages/client";
+import { createFilterOptions } from "@mui/joy";
+import { register } from "next/dist/client/components/react-dev-overlay/pages/client";
 
+interface ISelectCCValue {
+  label: string;
+  value: string;
+}
 interface SelectProps<T> {
   _control: any;
   _setValue: any;
@@ -27,13 +31,15 @@ interface SelectProps<T> {
   size?: any;
   required: boolean;
   listaData: T[];
+  defaultValue?: any;
   onChangeCallback?: (newValue: { label: string; value: number } | null) => void;
 }
 
 /* EJEMPLO DE USO
    <SelectCC _control={control} _setValue={setValue} label=" Areas" name="area" size="small" required={true} errors={errors} listaData={listaAreas} />
  */
-export const SelectCC: React.FC<SelectProps<any>> = ({ _control, _setValue, label, name, size, required, errors, listaData, onChangeCallback }) => {
+export const SelectCC: React.FC<SelectProps<any>> = (props) => {
+  const { _control, _setValue, label, name, size, required, errors, listaData, onChangeCallback, defaultValue = null } = props;
   const listaAux = [
     {
       label: "No options",
@@ -41,7 +47,7 @@ export const SelectCC: React.FC<SelectProps<any>> = ({ _control, _setValue, labe
     },
   ];
 
-  const [selectedOpt, setSelectedOpt] = useState<string | null>(null);
+  const [selectedOpt, setSelectedOpt] = useState<ISelectCCValue | undefined>(defaultValue);
   const selectRef = useRef<any>(null);
 
   const handleDataChange = (newval: any) => {
@@ -55,6 +61,12 @@ export const SelectCC: React.FC<SelectProps<any>> = ({ _control, _setValue, labe
       _setValue(name, undefined);
     }
   };
+
+  useEffect(() => {
+    if (defaultValue) {
+      handleDataChange(defaultValue);
+    }
+  }, [defaultValue?.value]);
 
   return (
     <div>
@@ -106,9 +118,7 @@ export const SelectStatusCC: React.FC<Select2Props<any>> = ({ register, label, n
   return (
     <div>
       <FormControl size="small" fullWidth>
-        <InputLabel htmlFor={name}>
-          {label}
-        </InputLabel>
+        <InputLabel htmlFor={name}>{label}</InputLabel>
         <Select
           {...register(name, {
             required: { value: required, message: `${label} is required` },
@@ -128,8 +138,17 @@ export const SelectStatusCC: React.FC<Select2Props<any>> = ({ register, label, n
   );
 };
 
-
-export const SelectSimple: React.FC<SelectProps<any>> = ({ _control, _setValue, label, name, size, required, errors, listaData, onChangeCallback }) => {
+export const SelectSimple: React.FC<SelectProps<any>> = ({
+  _control,
+  _setValue,
+  label,
+  name,
+  size,
+  required,
+  errors,
+  listaData,
+  onChangeCallback,
+}) => {
   const listaAux = [
     {
       label: "No options",
@@ -138,47 +157,28 @@ export const SelectSimple: React.FC<SelectProps<any>> = ({ _control, _setValue, 
   ];
   const selectRef = useRef<HTMLSelectElement>(null);
 
-
   return (
-      <div>
-        <FormControl size="small" fullWidth>
-          <InputLabel id={name}>
-            * {label}
-          </InputLabel>
+    <div>
+      <FormControl size="small" fullWidth>
+        <InputLabel id={name}>* {label}</InputLabel>
         <Controller
-            name={name}
-            control={_control}
-            defaultValue=""
-            rules={{ required: { value: required, message: `${label} is required` } }}
-            render={({ field }) => (
-                <Select
-
-
-                    size={size}
-                    fullWidth
-                    id={name}
-                    defaultValue=""
-                    inputRef={selectRef}
-                    labelId={name}
-                    label={label}
-                    {...field}
-                >
-                  {listaData.map((material) => (
-                      <MenuItem key={material.value} value={material.value}>
-                        {material.label}
-                      </MenuItem>
-                  ))}
-                </Select>
-            )}
-
+          name={name}
+          control={_control}
+          defaultValue=""
+          rules={{ required: { value: required, message: `${label} is required` } }}
+          render={({ field }) => (
+            <Select size={size} fullWidth id={name} defaultValue="" inputRef={selectRef} labelId={name} label={label} {...field}>
+              {listaData.map((material) => (
+                <MenuItem key={material.value} value={material.value}>
+                  {material.label}
+                </MenuItem>
+              ))}
+            </Select>
+          )}
         />
-        </FormControl>
+      </FormControl>
 
-
-
-
-
-        {errors[name] && typeof errors[name].message === "string" && <Typography color="error">{errors[name].message}</Typography>}
-      </div>
+      {errors[name] && typeof errors[name].message === "string" && <Typography color="error">{errors[name].message}</Typography>}
+    </div>
   );
 };

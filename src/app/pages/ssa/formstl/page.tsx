@@ -7,7 +7,7 @@
 "use client";
 
 import PageContainer from "@/app/components/container/PageContainer";
-import FormSTL from "@/app/sections/ssa/viewFormStl";
+import FormSTL from "@/app/sections/ssa/view/opaci/viewFormStl";
 
 export default function pageSTL() {
   return (

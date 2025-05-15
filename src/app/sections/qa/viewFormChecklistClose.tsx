@@ -9,7 +9,6 @@
 import { Account } from "@/app/_mock/account";
 import PageContainer from "@/app/components/container/PageContainer";
 import {
-  Badge,
   Box,
   Button,
   CardMedia,
@@ -23,11 +22,9 @@ import {
   Grid,
   MenuItem,
   Select,
-  SelectChangeEvent,
   Stack,
   TextField,
   Typography,
-  useTheme,
 } from "@mui/material";
 import { DataGrid, GridColDef, GridToolbar } from "@mui/x-data-grid";
 import React, { useEffect, useState } from "react";
@@ -46,6 +43,7 @@ import { SelectCC } from "@/app/components/select-option";
 import { GetUsuarios } from "@/app/api/dataApiComponents";
 import { SweetNotifyError, SweetNotifySuccesss } from "@/app/components/sweet-notificacion";
 import { sendEmailCloseSES, sendEmailSES } from "@/app/controllers/common/ControllerCommon";
+import { useSession } from "next-auth/react";
 //----------------------------------------------------------------------------------------------------------------
 //================================================================================================================
 
@@ -73,6 +71,7 @@ export default function FormChecklist() {
 
   /*-------------------DATOS DE INICIO DE SESION Y TOASTER --------------------------------*/
   const account = Account();
+  const { status } = useSession();
   const toaster = useToaster();
   const folderModule: string = "inspecciones-qa";
   const fechaActual = new Date();
@@ -236,14 +235,17 @@ export default function FormChecklist() {
   /*-------------------------------FUNCIONES----------------------------------------*/
 
   useEffect(() => {
-    loadFilterData();
-  }, []);
+    if (status === "authenticated") {
+      loadFilterData();
+    }
+  }, [status, account.token]);
+
   const zfill = (value: any, length: number) => {
     const str = value.toString();
     return str.padStart(length, "0");
   };
   async function loadFilterData() {
-    const listaUsuarios = await GetUsuarios();
+    const listaUsuarios = await GetUsuarios(account.token);
     setListaUsuarios(listaUsuarios);
     const listaEst: any = [
       {
@@ -265,7 +267,7 @@ export default function FormChecklist() {
     ];
     setListaEstados(listaEst);
 
-    const checklists = await getCheclist();
+    const checklists = await getCheclist(account.token);
     setListaChecklist(checklists);
   }
 
@@ -322,7 +324,7 @@ export default function FormChecklist() {
     //console.log(datos);
 
     try {
-      const response: ResponseCloseObseEncontradas | undefined = await closeObsChecklist(datos, typeUpdate);
+      const response: ResponseCloseObseEncontradas | undefined = await closeObsChecklist(datos, typeUpdate, account.token);
       if (response?.status === "success") {
         toaster.push(<Message type="success">{textToast}</Message>);
         typeUpdate == 2 && value == 2 && sendEmail(params);
@@ -370,16 +372,21 @@ export default function FormChecklist() {
     };
     // console.log(datosForm);
     const datos = Object.fromEntries(Object.entries(datosForm).filter(([_, value]) => value != undefined));
-    const response: ResponseObsEncontradas | undefined = await getObservacionesEncontradas(datos);
-    setDataRows(response?.object ? response.object : []);
-    toaster.push(<Message type="success">Datos encontrados</Message>);
+    const response: ResponseObsEncontradas | undefined = await getObservacionesEncontradas(datos, account.token);
+    setDataRows(response?.object ?? []);
+
+    if (response?.object && response.object.length) {
+      toaster.push(<Message type="success">Registros encontrados</Message>);
+    } else {
+      toaster.push(<Message type="warning">No se han encontrados registros</Message>);
+    }
   });
 
   const reasignar = handleSubmit(async (data) => {
     let datos = {
       userNameEjecucion: data.newUserEjecucion,
     };
-    const response = await reasignarResponsable(idUpdate, datos);
+    const response = await reasignarResponsable(idUpdate, datos, account.token);
 
     if (response?.status == "success") {
       SweetNotifySuccesss({ message: "Reasignación exitosa" });

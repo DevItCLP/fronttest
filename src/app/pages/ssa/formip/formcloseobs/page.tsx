@@ -9,7 +9,7 @@
 "use client";
 
 import PageContainer from "@/app/components/container/PageContainer";
-import FormIpClose from "@/app/sections/ssa/viewFormIpClose";
+import FormIpClose from "@/app/sections/ssa/view/opaci/viewFormIpClose";
 
 export default function pageCheckList() {
   return (

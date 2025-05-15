@@ -37,21 +37,22 @@ import {
   Typography,
 } from "@mui/material";
 import { Panel, Steps } from "rsuite";
-import BaseCard from "../../components/shared/BaseCard";
-import { UploaderCC } from "../../components/uploader";
+import BaseCard from "../../../../components/shared/BaseCard";
+import { UploaderCC } from "../../../../components/uploader";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import PageContainer from "../../components/container/PageContainer";
-import { InputRadiotCC, InputTextAreaCC, InputTextCC } from "../../components/input";
-import { DateCC } from "../../components/date-hour";
+import PageContainer from "../../../../components/container/PageContainer";
+import { InputRadiotCC, InputTextAreaCC, InputTextCC } from "../../../../components/input";
+import { DateCC } from "../../../../components/date-hour";
 
-import { SelectCC, SelectSimple } from "../../components/select-option";
+import { SelectSimple } from "../../../../components/select-option";
 import { GetAreas, GetLugarObs, GetPreguntas, GetProgramas, GetProyectos, GetTurnos } from "@/app/api/dataApiComponents";
 import { SweetNotifyError, SweetNotifySuccesss } from "@/app/components/sweet-notificacion";
 import { Account } from "@/app/_mock/account";
-import PreviewReport from "./reports/viewPreview";
+import PreviewReport from "../../reports/viewPreview";
 import { MinutePicker } from "@/app/components/MinutePicker";
 import { saveAsclFull, uploadImagesS3 } from "@/app/controllers/ssa/ControllerAscl";
+import { useSession } from "next-auth/react";
 //================================================================================================================================
 
 export default function FormRS() {
@@ -77,6 +78,7 @@ export default function FormRS() {
   const folderModule: string = "reu-seguimiento";
   const ruta: string = `${process.env.NEXT_PUBLIC_URL_FOLDER_MAIN_S3}/` + `${process.env.NEXT_PUBLIC_URL_FOLDER_SSA_S3}/` + folderModule;
   const account = Account();
+  const { status } = useSession();
   const {
     register,
     control,
@@ -96,16 +98,18 @@ export default function FormRS() {
 
   //==========================================FUNCIONES===================================================================================
   useEffect(() => {
-    loadDataApi();
-  }, []);
+    if (status === "authenticated") {
+      loadDataApi();
+    }
+  }, [status, account.token]);
 
   async function loadDataApi() {
-    const areas = await GetAreas();
-    const programas = await GetProgramas();
-    const lugares = await GetLugarObs();
-    const turnos = await GetTurnos();
-    const proyectos = await GetProyectos();
-    const preg = await GetPreguntas(1);
+    const areas = await GetAreas(account.token);
+    const programas = await GetProgramas(account.token);
+    const lugares = await GetLugarObs(account.token);
+    const turnos = await GetTurnos(account.token);
+    const proyectos = await GetProyectos(account.token);
+    const preg = await GetPreguntas(1, account.token);
     setlistaAreas(areas);
     setlistaProgramas(programas);
     setlistaProyectos(proyectos);
@@ -118,11 +122,11 @@ export default function FormRS() {
     if (showForm === 0) {
       onNext();
     } else if (showForm === 1) {
-      console.log(data);
+      //console.log(data);
       getDatosPreview(data);
       onNext();
     } else if (showForm === 2) {
-      console.log(data);
+      // console.log(data);
       save(data);
     }
   });
@@ -172,7 +176,7 @@ export default function FormRS() {
     };
 
     try {
-      const response: reponseSaveAscl | undefined = await saveAsclFull(datos);
+      const response: reponseSaveAscl | undefined = await saveAsclFull(datos, account.token);
 
       if (response) {
         SweetNotifySuccesss({ message: "Documento registrado exitosamente" });
@@ -261,7 +265,7 @@ export default function FormRS() {
     <PageContainer title="SSA - DPS" description="Dialogo Periódico de Seguridad">
       <Container maxWidth="xl">
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
-          <Typography variant="h4">Dialogo Periódico de Seguridad </Typography>
+          <Typography variant="h4">Diálogo Periódico de Seguridad </Typography>
         </Stack>
         <Divider sx={{ borderStyle: "revert", m: 2 }} />
 
@@ -337,7 +341,7 @@ export default function FormRS() {
                             <SelectSimple
                               _control={control}
                               _setValue={setValue}
-                              label=" Areas"
+                              label=" Áreas"
                               name="area"
                               size="small"
                               required={true}
@@ -350,7 +354,7 @@ export default function FormRS() {
                             <SelectSimple
                               _control={control}
                               _setValue={setValue}
-                              label=" Lugar de Observacion"
+                              label=" Lugar de Observación"
                               name="lugarobs"
                               size="small"
                               required={true}

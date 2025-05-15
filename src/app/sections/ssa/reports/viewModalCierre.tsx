@@ -99,7 +99,7 @@ export const ModalViewCierre: React.FC<interFace<any>> = ({ open, handleClose, l
                       </TableCell>
                       <TableCell>
                         <Typography variant="subtitle2">
-                          CODIGO: <Typography component={"span"}>{zfill(listaDataReporte[0].idAscl, 6)}</Typography>
+                          CÓDIGO: <Typography component={"span"}>{zfill(listaDataReporte[0].idAscl, 6)}</Typography>
                         </Typography>
                       </TableCell>
                       {/*  <TableCell>
@@ -138,11 +138,11 @@ export const ModalViewCierre: React.FC<interFace<any>> = ({ open, handleClose, l
                       <TableCell align="left">ACTO-CONDICIÓN</TableCell>
                       <TableCell align="left">OBSERVACIÓN ENCONTRADA</TableCell>
                       <TableCell width={300} align="left">
-                        EVIDEMCIA OBSERVACIÓN
+                        EVIDENCIA DE OBSERVACIÓN
                       </TableCell>
                       <TableCell align="left">ACCIÓN REALIZADA</TableCell>
                       <TableCell width={300} align="left">
-                        EVIDENCIA CIERRE
+                        EVIDENCIA DE CIERRE
                       </TableCell>
                       <TableCell align="left">USUARIO CONTROLADOR</TableCell>
                       <TableCell align="left">USUARIO EJECUTOR</TableCell>
@@ -170,13 +170,26 @@ export const ModalViewCierre: React.FC<interFace<any>> = ({ open, handleClose, l
                           </TableCell>
                           <TableCell>{data.accionRealizadaCierre}</TableCell>
                           <TableCell>
-                            <CardMedia
+                            {/*   <CardMedia
                               key={`image`}
                               component="img"
                               height="100"
                               image={`${process.env.NEXT_PUBLIC_URL_MEDIA}/${process.env.NEXT_PUBLIC_URL_FOLDER_MAIN_S3}/${process.env.NEXT_PUBLIC_URL_FOLDER_SSA_S3}/${folderModule}/${data.imagenAccionRealizadaCierre}`}
                               alt={data.imagenAccionRealizadaCierre}
-                            />
+                            /> */}
+                            {data.imagenAccionRealizadaCierre &&
+                              data.imagenAccionRealizadaCierre.split(", ").map((data: string, index: number) => {
+                                const isPDF = data.toLowerCase().endsWith(".pdf");
+                                const fileUrl = `${process.env.NEXT_PUBLIC_URL_MEDIA}/${process.env.NEXT_PUBLIC_URL_FOLDER_MAIN_S3}/${process.env.NEXT_PUBLIC_URL_FOLDER_SSA_S3}/inspecciones-planificadas/${data}`;
+
+                                return isPDF ? (
+                                  <a key={index} href={fileUrl} target="_blank" rel="noopener noreferrer">
+                                    📄 Descargar Informe {data}
+                                  </a>
+                                ) : (
+                                  <CardMedia key={index} component="img" height="300" image={fileUrl} style={{ objectFit: "contain" }} alt={data} />
+                                );
+                              })}
                           </TableCell>
                           <TableCell>{data.usuarioControl}</TableCell>
                           <TableCell>{data.usuarioEjecucion}</TableCell>
@@ -184,6 +197,7 @@ export const ModalViewCierre: React.FC<interFace<any>> = ({ open, handleClose, l
                             {data.statusAcslDet == 0 && <Typography color={"#F4D03F"}> ⚠️ ABIERTO</Typography>}
                             {data.statusAcslDet == 1 && <Typography color={"#2196F3"}> 📶EN PROCESO</Typography>}
                             {data.statusAcslDet == 2 && <Typography color={"#52BE80"}> ✅ CERRADO</Typography>}
+                            {data.statusAcslDet == 3 && <Typography color={"#17a589"}> ✅ GESTIONADO</Typography>}
                           </TableCell>
                           <TableCell>{data.fechaObservacionCierre}</TableCell>
                         </TableRow>

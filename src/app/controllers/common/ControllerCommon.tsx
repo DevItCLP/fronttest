@@ -1,6 +1,9 @@
 import axios from "axios";
 import { generateHtmlTemplate } from "@/app/components/template/templateEmail";
 import { generateHtmlCloseTemplate } from "@/app/components/template/templateEmailCierre";
+import { signOut } from "next-auth/react";
+
+//===========================================================================
 
 const zfill = (value: any, length: number) => {
   const str = value.toString();
@@ -60,37 +63,28 @@ export async function sendEmailCloseSES(
   let resp: any | undefined = response.data;
   return resp;
 }
-/* export async function sendEmailReasignaciónSES(
-  listArrayEmpleado: ResultadoEmail[],
-  userSendNotify: string,
-  subject: string,
-  proceso: string,
-  idRegistro: string
-) {
-  let _user = listArrayEmpleado.map((val) => val.name).join(", ");
-  const now = new Date();
-  const date = now.toLocaleDateString();
-  const time = now.toLocaleTimeString();
-  let usuarios = _user ? _user : "User default Zami";
-  let proceso_ses = proceso ? proceso : "Process default Zami";
-  let creado_por_ses = userSendNotify ? userSendNotify : "Created by default Zami";
-  let date_time_ses = date + "- " + time;
-  let idRegistro_ses = idRegistro ? idRegistro : "Code 9999 default Zami";
 
-  let template = generateHtmlTemplate(usuarios, proceso_ses, creado_por_ses, date_time_ses, idRegistro_ses);
-
-  let payload = {
-    toAddress: listArrayEmpleado.map((val) => val.email),
-    subject: subject,
-    template: template,
-  };
-  const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST_URL}/api/ses`, payload);
-
-  let resp: any | undefined = response.data;
-  return resp;
-}
- */
 export async function uploadImagesS3(images: imagesType[], id: number, ruta: string) {
+  images.map(async (val) => {
+    try {
+      const formData: FormData = new FormData();
+      formData.append("image", val.blobFile);
+      formData.append("ruta", `${ruta}/`);
+      formData.append("id", id.toString());
+      const headers = {
+        "Content-Type": "multipart/form-data",
+      };
+      const { data } = await axios.post<reponseGeneric>(`${process.env.NEXT_PUBLIC_HOST_URL}/api/s3`, formData, { headers });
+      //Pongo este fragmento de código temporalmente para ver si se carga la imagen y obtener la URL de la misma
+      if (data.success) {
+        console.log(data.message, data.data.url);
+      }
+    } catch (error) {
+      return { error: "Error al comunicarse con s3" };
+    }
+  });
+}
+export async function uploadIFilesS3(images: imagesType[], id: string, ruta: string) {
   images.map(async (val) => {
     try {
       const formData: FormData = new FormData();
@@ -127,5 +121,18 @@ export async function uploadImageS3(image: imageType, id: string, ruta: string) 
     }
   } catch (error) {
     return { error: "Error al comunicarse con s3" };
+  }
+}
+
+export async function handleApiError(error: unknown) {
+  if (axios.isAxiosError(error)) {
+    if (error.response?.status === 403) {
+      console.error("Token caducado o acceso no autorizado. Redirigiendo al login...");
+      await signOut(); // Cierra la sesión y redirige a la página de inicio de sesión
+    } else {
+      console.error("Error de comunicacion con el servicio: ", error.response?.status, error.response?.data);
+    }
+  } else {
+    console.error("Error inesperado: ", error);
   }
 }

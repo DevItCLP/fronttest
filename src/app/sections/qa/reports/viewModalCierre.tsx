@@ -28,10 +28,7 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import ReactToPrint from "react-to-print";
 import PrintIcon from "@mui/icons-material/Print";
-import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
-import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
 import Image from "next/image";
-import { DividerCenter } from "@/app/components/Divider";
 import { useRef } from "react";
 import ArticleIcon from "@mui/icons-material/Article";
 interface interFace<T> {

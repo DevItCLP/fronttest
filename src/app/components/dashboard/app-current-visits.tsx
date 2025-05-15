@@ -7,6 +7,10 @@ import { styled, useTheme } from "@mui/material/styles";
 import { fNumber } from "@/utils/format-number";
 
 import Chart, { useChart } from "@/app/components/chart";
+import { Button } from "@mui/material";
+
+import { useRef } from "react";
+import { AlignHorizontalCenter } from "@mui/icons-material";
 
 // ----------------------------------------------------------------------
 
@@ -30,8 +34,9 @@ const StyledChart = styled(Chart)(({ theme }) => ({
 
 export default function AppCurrentVisits({ title, subheader, chart, ...other }: { title: string; subheader: any; chart: any }) {
   const theme = useTheme();
+  const chartRef = useRef<HTMLDivElement>(null);
 
-  const { colors, series, options } = chart;
+  const { series = [], options = {}, colors = [] } = chart || {};
 
   const chartSeries = series.map((i: any) => i.value);
 
@@ -41,7 +46,8 @@ export default function AppCurrentVisits({ title, subheader, chart, ...other }: 
         enabled: true,
       },
     },
-    colors,
+
+    colors: colors,
     labels: series.map((i: any) => i.label),
     stroke: {
       colors: [theme.palette.background.paper],
@@ -78,11 +84,28 @@ export default function AppCurrentVisits({ title, subheader, chart, ...other }: 
     ...options,
   });
 
+  /*   const handleExportPDF = async () => {
+    if (!chartRef.current) return;
+
+    const canvas = await html2canvas(chartRef.current, { scale: 2 });
+    const imgData = canvas.toDataURL("image/png");
+
+    const pdf = new jsPDF("p", "mm", "a4");
+    pdf.text(title, 10, 10);
+    pdf.addImage(imgData, "PNG", 10, 20, 180, 100);
+    pdf.save("chart.pdf");
+  }; */
+
   return (
     <Card {...other}>
-      <CardHeader title={title} subheader={subheader} sx={{ mb: 5 }} />
+      <CardHeader title={title} subheader={subheader} sx={{ mb: 5, textAlign: "center" }} />
+      <div ref={chartRef}>
+        <StyledChart dir="ltr" type="pie" series={chartSeries} options={chartOptions} width="100%" height={280} />
+      </div>
 
-      <StyledChart dir="ltr" type="pie" series={chartSeries} options={chartOptions} width="100%" height={280} />
+      {/*  <Button onClick={handleExportPDF} variant="contained" sx={{ m: 2 }}>
+        Exportar a PDF
+      </Button> */}
     </Card>
   );
 }

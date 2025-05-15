@@ -17,6 +17,7 @@ export const UploaderCC = ({
   multiple,
   errors,
   shouldFocus,
+  disabled,
 }: {
   _control: any;
   label: string;
@@ -25,6 +26,7 @@ export const UploaderCC = ({
   multiple: boolean;
   errors: any;
   shouldFocus: boolean;
+  disabled?: boolean;
 }) => {
   const selectRef = useRef<any>(null);
 
@@ -44,8 +46,9 @@ export const UploaderCC = ({
         }}
         render={({ field }) => (
           <Uploader
+            disabled={disabled}
             {...field}
-            accept="image/png image/jpg image/jpeg"
+            accept=".png, .jpg, .jpeg, .pdf"
             multiple={multiple}
             action=""
             autoUpload={false}
@@ -123,7 +126,7 @@ export const UploaderMinCC = ({
         render={({ field }) => (
           <Uploader
             {...field}
-            accept="image/png image/jpg image/jpeg"
+            accept=".png, .jpg, .jpeg"
             multiple={multiple}
             listType="picture-text"
             action=""
@@ -203,7 +206,7 @@ export const UploaderAvatar = ({
             disabled={disabled}
             fileListVisible={false}
             {...field}
-            accept="image/png image/jpg image/jpeg"
+            accept=".png, .jpg, .jpeg"
             multiple={multiple}
             listType="picture-text"
             action=""

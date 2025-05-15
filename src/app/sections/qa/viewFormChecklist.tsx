@@ -40,7 +40,6 @@ import { FirstPage, LastPage, Checklist, Article, ArrowDropDown, TaskAlt, NoteAd
 import { GetLugarObs, GetUsuarios } from "@/app/api/dataApiComponents";
 import { useForm } from "react-hook-form";
 import { primary } from "@/theme/palette";
-import { dark } from "@mui/material/styles/createPalette";
 import { SelectCC } from "@/app/components/select-option";
 import { DateCC } from "@/app/components/date-hour";
 import { InputTextAreaCC } from "@/app/components/input";
@@ -50,6 +49,7 @@ import { SweetNotifyError, SweetNotifySuccesss } from "@/app/components/sweet-no
 import { _saveCheckList, GetOpcChecklist, GetTipoCheckList } from "@/app/controllers/qa/ControllerCheckList";
 import { uploadImagesS3 } from "@/app/controllers/ssa/ControllerAscl";
 import { sendEmailSES } from "@/app/controllers/common/ControllerCommon";
+import { useSession } from "next-auth/react";
 
 /*----------------------------------------------------------------------------------------------------------------------------------------------------*/
 
@@ -71,8 +71,12 @@ export default function FormChecklist() {
   const [listaOpcionesChecklist, setListaOpcionesChecklist] = useState<any[]>([]);
   const [listaObsEncontradas, setlistaObsEncontradas] = useState<any[]>([]);
 
+  const [nombreTipoChecklist, setNombreTipoChecklist] = useState("");
+  const [idTipoChecklist, setIdTipoChecklist] = useState<number>();
+
   /*-------------------DATOS DE INICIO DE SESION Y FECHA ACTUAL --------------------------------*/
   const account = Account();
+  const { status } = useSession();
   const fechaActual = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}-${String(new Date().getDate()).padStart(
     2,
     "0"
@@ -81,8 +85,10 @@ export default function FormChecklist() {
   /*-------------------------------FUNCIONES----------------------------------------*/
 
   useEffect(() => {
-    loadDataApi();
-  }, []);
+    if (status === "authenticated") {
+      loadDataApi();
+    }
+  }, [status, account.token]);
 
   /*****OPEN: FUNCIONES PARA LOS STIPS OPTIONS****/
   const StipArrayOpc = [" Generar CheckList", " Asignar Responsable", " Revisar y Finalizar"];
@@ -115,15 +121,20 @@ export default function FormChecklist() {
     setIsCheckedPanel(id);
   };
   const handleTipoChecklistChange = async (newVal: OptionCheclist | null) => {
-    const listaOpciones = await GetOpcChecklist(newVal);
+    const listaOpciones = await GetOpcChecklist(newVal, account.token);
     setListaOpcionesChecklist(listaOpciones);
+
+    //Obtenemos el nombre del tipo de checklist seleccionado
+    const nameTipoCheclist = listaTipoCheckList.find((item) => item.value === newVal?.value)?.label;
+    setNombreTipoChecklist(nameTipoCheclist);
+    setIdTipoChecklist(newVal?.value);
   };
   /***CLOSE: FUNCIONES PARA LAS OPCIOPNES DEL CHECKLIST***/
 
   async function loadDataApi() {
-    const lugares = await GetLugarObs();
-    const tipoChecklist = await GetTipoCheckList();
-    const usuarios = await GetUsuarios();
+    const lugares = await GetLugarObs(account.token);
+    const tipoChecklist = await GetTipoCheckList(account.token, 2);
+    const usuarios = await GetUsuarios(account.token);
     setlistaLugarObs(lugares);
     setlistaTipoCheckList(tipoChecklist);
     setlistaUsuarios(usuarios);
@@ -179,13 +190,12 @@ export default function FormChecklist() {
       lugarObservacion: { idLugarObser: data.areaChecklist },
       estado: estado,
       responsableControl: { idUser: account.idUser },
-      tipoChecklist: { idTipoChecklist: 1 },
+      tipoChecklist: { idTipoChecklist: idTipoChecklist },
       datosDetalleChecklist: datosDetalle,
     };
     // console.log("datos: ", datos);
-
     try {
-      const response: ResponseSaveCheckList | undefined = await _saveCheckList(datos);
+      const response: ResponseSaveCheckList | undefined = await _saveCheckList(datos, account.token);
 
       if (response?.status === "success") {
         SweetNotifySuccesss({ message: "Check list registrado exitosamente" });
@@ -223,7 +233,7 @@ export default function FormChecklist() {
     listatUsuariosSendMail.push({ name: account.displayName, email: account.email });
 
     let subject: string = "ZAMI Notificaciones";
-    let proceso: string = "CHECKLIST DE OPERACIÓN";
+    let proceso: string = nombreTipoChecklist;
     await sendEmailSES(listatUsuariosSendMail, account.displayName, subject, proceso, idRegistro);
   }
   const newRegister = () => {

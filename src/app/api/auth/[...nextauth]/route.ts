@@ -4,10 +4,10 @@ import CredentialsProvider from "next-auth/providers/credentials";
 
 //---------------------------------------------------------------------
 
-const authCredentials = {
+/* const authCredentials = {
   username: process.env.NEXT_PUBLIC_USER || "",
   password: process.env.NEXT_PUBLIC_PASS || "",
-};
+}; */
 const handler = NextAuth({
   providers: [
     CredentialsProvider({
@@ -19,10 +19,10 @@ const handler = NextAuth({
       },
       async authorize(credentials, req) {
         const datos = {
-          usser: credentials?.username,
+          username: credentials?.username,
           password: credentials?.password,
         };
-        const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth`, datos, { auth: authCredentials });
+        const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, datos);
         const user = response.data.object;
         if (response.data.status === "success") {
           const userSession = {
@@ -31,6 +31,7 @@ const handler = NextAuth({
             email: user[0].emailUser,
             telefono: user[0].telefonoUser,
             rol: user[0].nombreRol,
+            token: response.data.token,
           };
           return userSession;
         }
@@ -44,11 +45,9 @@ const handler = NextAuth({
       },
     }),
   ],
-  secret: process.env.NEXTAUTH_SECRET,
-  debug: process.env.NEXTAUTH_DEBUG === "true",
-  session: {
+  /*  session: {
     maxAge: 20 * 60,
-  },
+  }, */
   callbacks: {
     async jwt({ token, user }) {
       return { ...token, ...user };

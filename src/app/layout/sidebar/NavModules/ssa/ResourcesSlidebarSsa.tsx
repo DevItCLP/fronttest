@@ -14,13 +14,13 @@ export const subTitlesSsa: subTitles[] = [
   {
     id: uniqueId(),
     code: 1,
-    header: "Liderazgo Visible",
+    header: "LIDERAZGO EN MARCHA CLP",
     //open:
   },
   {
     id: uniqueId(),
     code: 2,
-    header: "VLP",
+    header: "INSPECCIONES",
   },
 ];
 
@@ -41,18 +41,11 @@ export const itemsssa: itemsTitles[] = [
   },
   {
     id: uniqueId(),
-    title: "Cerrar OPACI",
+    title: "CERRAR OPACI",
     icon: IconTable,
     idSubTitles: 1,
     href: "/pages/ssa/formip/formcloseobs",
   },
-  /*  {
-    id: uniqueId(),
-    title: "OPS",
-    icon: IconLayoutGrid,
-    idSubTitles: 1,
-    href: "/pages/ssa/formopt",
-  }, */
   {
     id: uniqueId(),
     title: "ART",
@@ -62,17 +55,38 @@ export const itemsssa: itemsTitles[] = [
   },
   {
     id: uniqueId(),
-    title: "Reportes",
+    title: "REPORTES",
     icon: IconLayout,
     idSubTitles: 1,
     href: "/pages/ssa/reportes",
   },
 
-  {
+  /*{
     id: uniqueId(),
-    title: "Registrar VLP",
+    title: "EN DESARROLLO",
     icon: IconLayout,
     idSubTitles: 2,
-    href: "/pages/ssa/reportes",
+    href: "/pages/ssa/#",
+  }, */
+  {
+    id: uniqueId(),
+    title: "GENERAR INSPECCIÓN",
+    icon: IconLayout,
+    idSubTitles: 2,
+    href: "/pages/ssa/formcoc",
   },
+  {
+    id: uniqueId(),
+    title: "CERRAR INSPECCIONES",
+    icon: IconLayout,
+    idSubTitles: 2,
+    href: "/pages/ssa/reportesinspec/formcloseobs",
+  },
+  {
+    id: uniqueId(),
+    title: " REPORTES",
+    icon: IconLayout,
+    idSubTitles: 2,
+    href: "/pages/ssa/reportesinspec",
+  }, 
 ];

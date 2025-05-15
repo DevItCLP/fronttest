@@ -1,4 +1,4 @@
-import imgen from "../../../../public/images/logos/Logo1.png";
+import imgen from "../../../../public/images/logos/logo.png";
 
 export function generateHtmlTemplate(usuarios: string, proceso: string, creado_por: string, date_time: string, idRegistro: any) {
   return `
@@ -323,7 +323,7 @@ export function generateHtmlTemplate(usuarios: string, proceso: string, creado_p
                 <td class="wrapper">
                 <!--
                   <div class="header" style="text-align: center;">
-                    <img src=${imgen} alt="ZAMI" width="150" height="150" />
+                    <img src=${imgen} alt="ZAMICLP" width="150" height="150" />
                   </div> -->
 
 
@@ -332,7 +332,7 @@ export function generateHtmlTemplate(usuarios: string, proceso: string, creado_p
                   </div>
 
                   <p>Hola, </p>
-                  <p>Se te ha asignado un proceso desde la plataforma web <b>ZAMI</b>,
+                  <p>Se te ha asignado un proceso desde la plataforma web <b>ZAMICLP</b>,
                     a continuación te indicamos los datos del registro:</p>
                     <strong><hr></strong>
                     <table role="presentation" border="0" cellpadding="0" cellspacing="0">

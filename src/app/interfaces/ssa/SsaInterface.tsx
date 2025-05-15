@@ -96,6 +96,12 @@ interface PayloadCloseIP {
   accionRealizadaCierre: string;
   imagenAccionRealizadaCierre: string;
 }
+interface PayloadCloseOPACI {
+  idObservacion: number;
+  statusAcslDet: number;
+  accionRealizadaCierre: string;
+  imagenAccionRealizadaCierre: string;
+}
 
 interface PayloadResponseSearch {
   acslGeneralAct: number;
@@ -119,4 +125,25 @@ interface PayloadEmail {
 interface ResultadoEmail {
   name: string;
   email: string;
+}
+
+interface ResponseDataGeneric {
+  message: string;
+  object: ObjectDataUserOpaci[];
+}
+
+interface ObjectDataUserOpaci {
+  id: number;
+  usuario: String;
+  cantidad: number;
+}
+
+interface ResponseDataCat {
+  message: string;
+  object: CategoriaOption[];
+}
+
+interface CategoriaOption {
+  idCategoria: number;
+  nombreCategoria: String;
 }

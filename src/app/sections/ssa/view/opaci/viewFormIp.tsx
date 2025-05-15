@@ -38,23 +38,24 @@ import {
   Typography,
 } from "@mui/material";
 import { Panel, Steps } from "rsuite";
-import BaseCard from "../../components/shared/BaseCard";
-import { UploaderCC } from "../../components/uploader";
+import BaseCard from "../../../../components/shared/BaseCard";
+import { UploaderCC } from "../../../../components/uploader";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import PageContainer from "../../components/container/PageContainer";
-import { _InputRadiotCC, InputTextAreaCC } from "../../components/input";
-import { DateCC } from "../../components/date-hour";
-import { SelectCC, SelectSimple } from "../../components/select-option";
+import PageContainer from "../../../../components/container/PageContainer";
+import { _InputRadiotCC, InputTextAreaCC } from "../../../../components/input";
+import { DateCC } from "../../../../components/date-hour";
+import { SelectCC, SelectSimple } from "../../../../components/select-option";
 import { GetAreas, GetLugarObs, GetPreguntas, GetProgramas, GetProyectos, GetTurnos, GetUsuarios } from "@/app/api/dataApiComponents";
 import { useResponsive } from "@/hooks/use-responsive";
 import { SweetNotifyError, SweetNotifySuccesss } from "@/app/components/sweet-notificacion";
 import { Account } from "@/app/_mock/account";
 
-import PreviewReport from "./reports/viewPreview";
+import PreviewReport from "../../reports/viewPreview";
 import { saveAsclFull, uploadGenericImagesS3 } from "@/app/controllers/ssa/ControllerAscl";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 import { sendEmailSES } from "@/app/controllers/common/ControllerCommon";
+import { useSession } from "next-auth/react";
 //---------------------------------------------------------
 interface ComponentState {
   id: number;
@@ -63,6 +64,7 @@ interface ComponentState {
 //------------------------------------------------------------
 export default function FormIP() {
   const account = Account();
+  const { status } = useSession();
   const authCredentials = {
     username: process.env.NEXT_PUBLIC_USER || "",
     password: process.env.NEXT_PUBLIC_PASS || "",
@@ -112,17 +114,19 @@ export default function FormIP() {
   const onPrevious = () => onChange(step - 1);
 
   useEffect(() => {
-    loadDataApi();
-  }, []);
+    if (status === "authenticated") {
+      loadDataApi();
+    }
+  }, [status, account.token]);
 
   async function loadDataApi() {
-    const areas = await GetAreas();
-    const programas = await GetProgramas();
-    const lugares = await GetLugarObs();
-    const turnos = await GetTurnos();
-    const proyectos = await GetProyectos();
-    const preg = await GetPreguntas(2);
-    const users = await GetUsuarios();
+    const areas = await GetAreas(account.token);
+    const programas = await GetProgramas(account.token);
+    const lugares = await GetLugarObs(account.token);
+    const turnos = await GetTurnos(account.token);
+    const proyectos = await GetProyectos(account.token);
+    const preg = await GetPreguntas(2, account.token);
+    const users = await GetUsuarios(account.token);
     setlistaAreas(areas);
     setlistaProgramas(programas);
 
@@ -190,7 +194,7 @@ export default function FormIP() {
     resultSendEmpleado.push({ name: account.displayName, email: account.email });
 
     try {
-      const response: reponseSaveAscl | undefined = await saveAsclFull(datos);
+      const response: reponseSaveAscl | undefined = await saveAsclFull(datos, account.token);
 
       if (response) {
         SweetNotifySuccesss({ message: "Documento registrado exitosamente" });
@@ -201,7 +205,7 @@ export default function FormIP() {
         sendEmail(resultSendEmpleado, idIp);
       } else {
         SweetNotifyError({
-          message: "A ocurrido un error al cargar registrar el documento",
+          message: "A ocurrido un error al registrar el documento",
         });
       }
     } catch (error) {
@@ -375,7 +379,7 @@ export default function FormIP() {
                                 <SelectSimple
                                   _control={control}
                                   _setValue={setValue}
-                                  label=" Areas"
+                                  label=" Áreas"
                                   name="area"
                                   size="small"
                                   required={true}
@@ -388,7 +392,7 @@ export default function FormIP() {
                                 <SelectSimple
                                   _control={control}
                                   _setValue={setValue}
-                                  label=" Lugar de Observacion"
+                                  label=" Lugar de Observación"
                                   name="lugarobs"
                                   size="small"
                                   required={true}
@@ -487,7 +491,7 @@ export default function FormIP() {
                                           label=" Adjuntar fotografias"
                                           name={`imagen_${box.id}`}
                                           required={true}
-                                          multiple={true}
+                                          multiple={false}
                                           errors={errors}
                                           shouldFocus={false}
                                         />

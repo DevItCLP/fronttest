@@ -92,12 +92,14 @@ interface InputTextAreaProps {
   size?: string;
   required: boolean;
   rows: number;
+  disabled?: boolean;
 }
-export const InputTextAreaCC: React.FC<InputTextAreaProps> = ({ register, label, icon, name, size, required, errors, rows }) => {
+export const InputTextAreaCC: React.FC<InputTextAreaProps> = ({ register, label, icon, name, size, required, errors, rows, disabled }) => {
   return (
     <div>
       <TextField
         fullWidth
+        disabled={disabled}
         size={size}
         {...register(name, {
           required: { value: required, message: `${label} is required` },

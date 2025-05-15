@@ -30,9 +30,11 @@ import {
   ListItemIcon,
   ListItemText,
   Menu,
+  MenuItem,
   SelectChangeEvent,
   Stack,
   Switch,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import { DataGrid, GridColDef, GridToolbar, GridToolbarProps } from "@mui/x-data-grid";
@@ -56,6 +58,7 @@ import { SweetNotifyError, SweetNotifySuccesss } from "@/app/components/sweet-no
 import { alpha } from "@mui/material/styles";
 import { ViewAddUser } from "./viewAddUser";
 import { ViewResetPassword } from "./viewResetPassword";
+import { useSession } from "next-auth/react";
 
 export default function UsersView() {
   type MenuState = {
@@ -83,7 +86,7 @@ export default function UsersView() {
   const [statusPaasword, setStatusPaasword] = useState<boolean>(false);
 
   /*-------------------DATOS DE INICIO DE SESION Y CONSTANTES GLOBALES --------------------------------*/
-  const account = Account();
+
   const defaulValues = {
     username: "",
     password: "",
@@ -98,18 +101,25 @@ export default function UsersView() {
     newPassword: "",
     confirmNewPassword: "",
   };
+
+  const account = Account();
+  const { status } = useSession();
+
   /*------------------------------FUNCIONES------------------------------------------*/
 
   useEffect(() => {
-    getAllUsers();
-  }, []);
+    if (status === "authenticated") {
+      getAllUsers();
+    }
+  }, [status, account.token]);
+
   const zfill = (value: any, length: number) => {
     const str = value.toString();
     return str.padStart(length, "0");
   };
   async function getAllUsers() {
-    const usuarios = await GetAllUsuarios();
-    const roles = await GetRoles();
+    const usuarios = await GetAllUsuarios(account.token);
+    const roles = await GetRoles(account.token);
     setlistaUsuarios(usuarios);
     setListaRoles(roles);
   }
@@ -151,18 +161,21 @@ export default function UsersView() {
     };
     try {
       let response = null;
+      let txtMsg = "";
       if (estadosave == 1) {
-        response = await saveUsuario(datos);
+        response = await saveUsuario(datos, account.token);
+        txtMsg = "registrado exitosamente";
       } else {
-        response = await updateUsuario(datos, idUpdate);
+        response = await updateUsuario(datos, idUpdate, account.token);
+        txtMsg = "actualizado exitosamente";
       }
 
       if (response) {
         handleClickClose();
-        const usuarios = await GetAllUsuarios();
+        const usuarios = await GetAllUsuarios(account.token);
         setlistaUsuarios(usuarios);
         reset();
-        SweetNotifySuccesss({ message: `Usuario ${data.nombreUsuario} ${data.apellidoUsuario}  registrado exitosamente` });
+        SweetNotifySuccesss({ message: `Usuario ${data.nombreUsuario} ${data.apellidoUsuario} ${txtMsg}` });
       } else {
         SweetNotifyError({
           message: "A ocurrido un error al cargar registrar el documento",
@@ -201,14 +214,14 @@ export default function UsersView() {
       return false;
     }
     try {
-      const response = await resetPassword(datos, idUpdate);
+      const response = await resetPassword(datos, idUpdate, account.token);
       if (response) {
         handleClickClose2();
         reset();
         SweetNotifySuccesss({ message: "Contraseña restablecida exitosamente" });
       } else {
         SweetNotifyError({
-          message: "A ocurrido un error al cargar registrar el documento",
+          message: "A ocurrido un error al registrar el documento",
         });
       }
     } catch (error) {
@@ -259,44 +272,30 @@ export default function UsersView() {
       align: "center",
       renderCell: (params: any) => (
         <Box>
-          <IconButton aria-label="more" aria-controls={params.row.id} aria-haspopup="true" onClick={(event) => handleClick(event, params.row.id)}>
-            <MoreVertIcon />
-          </IconButton>
+          <Tooltip title="Más opciones">
+            <IconButton aria-label="more" aria-controls={params.row.id} aria-haspopup="true" onClick={(event) => handleClick(event, params.row.id)}>
+              <MoreVertIcon />
+            </IconButton>
+          </Tooltip>
+
           <Menu
             id={`menu_${params.row.id}`}
             anchorEl={menuAnchors[params.row.id]}
             open={Boolean(menuAnchors[params.row.id])}
-            onClose={() => {
-              handleClose(params.row.id);
-            }}
+            onClose={() => handleClose(params.row.id)}
           >
-            <List>
-              <ListItem
-                component="a"
-                style={{ cursor: "pointer" }}
-                onClick={() => {
-                  loadUsuario(params.row);
-                }}
-              >
-                <ListItemIcon>
-                  <NoteAltIcon />
-                </ListItemIcon>
-                <ListItemText primary="Editar" />
-              </ListItem>
-
-              <ListItem
-                component="a"
-                style={{ cursor: "pointer" }}
-                onClick={() => {
-                  loadModalResetPassword(params.row);
-                }}
-              >
-                <ListItemIcon>
-                  <LockResetIcon />
-                </ListItemIcon>
-                <ListItemText primary="Resetear Password" />
-              </ListItem>
-            </List>
+            <MenuItem onClick={() => loadUsuario(params.row)}>
+              <ListItemIcon>
+                <NoteAltIcon />
+              </ListItemIcon>
+              <ListItemText primary="Editar" />
+            </MenuItem>
+            <MenuItem onClick={() => loadModalResetPassword(params.row)}>
+              <ListItemIcon>
+                <LockResetIcon />
+              </ListItemIcon>
+              <ListItemText primary="Resetear Password" />
+            </MenuItem>
           </Menu>
         </Box>
       ),
@@ -304,7 +303,7 @@ export default function UsersView() {
   ];
 
   return (
-    <PageContainer title="QA - CheckList" description="Cierre de Observaciones">
+    <PageContainer title="Usuarios - Gestión" description="Gestion de usuarios">
       <Container maxWidth="xl">
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4">Gestión - Usuarios</Typography>
@@ -356,16 +355,13 @@ export default function UsersView() {
                 disableRowSelectionOnClick
                 disableColumnMenu
                 sx={{
-                  "& .MuiDataGrid-cell": {
-                    border: "1px solid #e0e0e0",
-                  },
                   "& .MuiDataGrid-row": {
                     maxHeight: "none !important",
                   },
 
                   "& .MuiDataGrid-columnHeader": {
                     border: "1px solid #e0e0e0",
-                    bgcolor: (theme) => alpha(theme.palette.grey[500], 1),
+                    bgcolor: (theme) => alpha(theme.palette.grey[400], 1),
                     fontWeight: "bold",
                   },
 

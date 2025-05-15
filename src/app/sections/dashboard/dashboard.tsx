@@ -4,7 +4,7 @@
  * Copyright (c) 2024 CC
  * Author:  Cristian R. Paz  */
 
-import { Grid, Box, Divider } from "@mui/material";
+import { Grid, Box, Divider, alpha } from "@mui/material";
 import DailyActivity from "@/app/components/dashboard/DailyActivity";
 import ProductPerformance from "@/app/components/dashboard/ProductPerformance";
 import BlogCard from "@/app/components/dashboard/Blog";
@@ -14,55 +14,67 @@ import Image from "next/image";
 import AppWebsiteVisits from "@/app/components/dashboard/app-website-visits";
 import AppCurrentVisits from "@/app/components/dashboard/app-current-visits";
 import { Account } from "@/app/_mock/account";
+import { useEffect, useState } from "react";
+import { GetModulos } from "@/app/api/dataApiComponents";
+import { useSession } from "next-auth/react";
+import React from "react";
+import iconMap from "../../../../public/assets/icons/iconsMui";
+import FolderIcon from "@mui/icons-material/Folder";
 
 //---------------------------------------------------------------------
 
 const Dashboard = () => {
+  //========================constantes globales===========================
   const account = Account();
+  const { status } = useSession();
+
+  //=============================LISTAS===================================
+
+  const [listaModulos, setListaModulos] = useState<any[]>([]);
+
+  //============================Metodo que carga con el sistema================================
+  useEffect(() => {
+    if (status === "authenticated") {
+      loadDataApi();
+    }
+  }, [status, account.token]);
+
+  //===========================Funciones===========================================
+  async function loadDataApi() {
+    const modulos = await GetModulos(account.token);
+
+    if (modulos) {
+      const modulosUser = modulos.filter((data: any) => data.value != 3);
+      account.role == "root" ? setListaModulos(modulos) : setListaModulos(modulosUser);
+    }
+  }
 
   return (
     <>
-      <h3>Hi, Welcome Modules ZamiCLP 👋</h3>
+      <h3>Hola, Bienvenido a los Modulos ZamiCLP 👋</h3>
       <Box mt={3}>
         <Grid container spacing={4}>
-          <Grid item xs={12} sm={6} md={3}>
-            <Link href={"/pages/ssa"} style={{ textDecoration: "none" }}>
-              <AppWidgetSummary
-                title="SSA"
-                legend="Module"
-                color="success"
-                icon={<Image alt="icon" src="/assets/icons/glass/ic_glass_bag.png" width={50} height={50} />}
-              />
-            </Link>
-          </Grid>
-
-          <Grid item xs={12} sm={6} md={3}>
-            <Link href={"/pages/qa"} style={{ textDecoration: "none" }}>
-              <AppWidgetSummary
-                title="QA"
-                legend="Module"
-                color="info"
-                icon={<Image alt="icon" src="/assets/icons/glass/ic_glass_message.png" width={50} height={50} />}
-              />
-            </Link>
-          </Grid>
-          {account.role == "root" && (
-            <Grid item xs={12} sm={6} md={3}>
-              <Link href={"/pages/settings"} style={{ textDecoration: "none" }}>
-                <AppWidgetSummary
-                  title="Control Panel"
-                  legend="Module"
-                  color="info"
-                  icon={<Image alt="icon" src="/assets/icons/glass/ic_glass_users.png" width={50} height={50} />}
-                />
-              </Link>
-            </Grid>
-          )}
+          {listaModulos.map((val, index) => {
+            return (
+              <Grid item md={3} sm={6} xs={12} key={index}>
+                <Link href={val.pathUrl} style={{ textDecoration: "none" }}>
+                  <AppWidgetSummary
+                    title={val.label}
+                    legend="Módulo"
+                    color={val.colorModulo}
+                    icon={React.createElement(iconMap[val.iconoModulo] || FolderIcon, {
+                      sx: { fontSize: "45px", color: (theme) => alpha(val.colorModulo, 0.8) },
+                    })}
+                  />
+                </Link>
+              </Grid>
+            );
+          })}
 
           <Divider sx={{ borderStyle: "revert", m: 2 }} />
           <Grid item xs={12} md={6} lg={8}>
             <AppWebsiteVisits
-              title="Website Visits"
+              title="Visitas al sitio web"
               subheader="(+43%) than last year"
               chart={{
                 labels: [
@@ -105,7 +117,7 @@ const Dashboard = () => {
           <Grid item xs={12} md={6} lg={4}>
             {/*   <SalesOverview /> */}
             <AppCurrentVisits
-              title="Current Visits"
+              title="Visitas actuales"
               chart={{
                 series: [
                   { label: "America", value: 4344 },
@@ -119,7 +131,7 @@ const Dashboard = () => {
           </Grid>
 
           {/* ------------------------- row 1 ------------------------- */}
-          <Grid item xs={12} lg={4}>
+          {/*  <Grid item xs={12} lg={4}>
             <DailyActivity />
           </Grid>
           <Grid item xs={12} lg={8}>
@@ -127,7 +139,7 @@ const Dashboard = () => {
           </Grid>
           <Grid item xs={12} lg={12}>
             <BlogCard />
-          </Grid>
+          </Grid> */}
         </Grid>
       </Box>
     </>

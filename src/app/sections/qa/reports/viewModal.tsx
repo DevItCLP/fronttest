@@ -38,8 +38,8 @@ interface interFace<T> {
   handleClose: any;
   listaDataReporte: T[];
 }
+
 export const ModalView: React.FC<interFace<any>> = ({ open, handleClose, listaDataReporte }) => {
-  //console.log(listaDataReporte);
 
   const componentRef = useRef<HTMLDivElement>(null);
   const lsize = listaDataReporte.length + 1;
@@ -105,7 +105,7 @@ export const ModalView: React.FC<interFace<any>> = ({ open, handleClose, listaDa
                 ) : (
                   <Typography variant="h5" color="error">
                     <RemoveCircleIcon />
-                    Documneto Anulado
+                    Documento Anulado
                   </Typography>
                 )}
               </Box>

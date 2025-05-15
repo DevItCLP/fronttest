@@ -12,7 +12,23 @@ import PageContainer from "@/app/components/container/PageContainer";
 import { DataRangeCC } from "@/app/components/date-hour";
 import { SelectCC, SelectStatusCC } from "@/app/components/select-option";
 import { Search } from "@mui/icons-material";
-import { Typography, Box, Container, Stack, Divider, Grid, Button, useTheme, Chip } from "@mui/material";
+import {
+  Typography,
+  Box,
+  Container,
+  Stack,
+  Divider,
+  Grid,
+  Button,
+  useTheme,
+  Chip,
+  Tooltip,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  IconButton,
+} from "@mui/material";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Badge, Message, useToaster } from "rsuite";
@@ -23,11 +39,17 @@ import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
 import NoteAltIcon from "@mui/icons-material/NoteAlt";
 import { ModalView } from "./reports/viewModal";
 import { ModalViewCierre } from "./reports/viewModalCierre";
-
+import { useSession } from "next-auth/react";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CancelIcon from "@mui/icons-material/Cancel";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
 //-----------------------------------------------------------------------------------------------------------
 //===========================================================================================================
 
 export default function ReportChecklist() {
+  type MenuState = {
+    [key: string]: HTMLElement | null;
+  };
   /*--------------------------------------------------REACT HOCK FORM ---------------------------------------*/
   const {
     register,
@@ -45,18 +67,21 @@ export default function ReportChecklist() {
   const [listaDataReporte, setListaDataReporte] = useState<any[]>([]);
   const [listaDataReporte2, setListaDataReporte2] = useState<any[]>([]);
 
+  const [menuAnchors, setMenuAnchors] = useState<MenuState>({});
+
   /*-------------------DATOS DE INICIO DE SESION Y TOASTER Y TEMA --------------------------------*/
   const account = Account();
+  const { status } = useSession();
   const toaster = useToaster();
   const theme = useTheme();
-
-  const folderModule: string = "inspecciones-qa";
 
   /*--------------------------------------------FUNCIONES---------------------------------------------------*/
   //Carga al aniciar el componente
   useEffect(() => {
-    loadFilterData();
-  }, []);
+    if (status === "authenticated") {
+      loadFilterData();
+    }
+  }, [status, account.token]);
 
   const zfill = (value: any, length: number) => {
     const str = value.toString();
@@ -67,10 +92,17 @@ export default function ReportChecklist() {
   const handleOpen2 = () => setOpen2(true);
   const handleClose2 = () => setOpen2(false);
 
+  const handleClickBtn = (event: React.MouseEvent<HTMLButtonElement>, id: number) => {
+    setMenuAnchors((prev) => ({ ...prev, [id]: event.currentTarget }));
+  };
+  const handleCloseBtn = (id: number) => {
+    setMenuAnchors((prev) => ({ ...prev, [id]: null }));
+  };
+
   async function loadFilterData() {
-    const listaUsuarios = await GetUsuarios();
+    const listaUsuarios = await GetUsuarios(account.token);
     setListaUsuarios(listaUsuarios);
-    const listaLugaresObs = await GetLugarObs();
+    const listaLugaresObs = await GetLugarObs(account.token);
     setListaLugaresObservacion(listaLugaresObs);
   }
 
@@ -89,7 +121,7 @@ export default function ReportChecklist() {
     const datos = Object.fromEntries(Object.entries(datosForm).filter(([_, value]) => value != undefined));
 
     try {
-      const response: ResponseGetChecklist | undefined = await getChecklists(datos);
+      const response: ResponseGetChecklist | undefined = await getChecklists(datos, account.token);
       setDataRows(response?.object ? response.object : []);
       response?.message == "Datos encontrados"
         ? toaster.push(<Message type="success">Datos encontrados</Message>)
@@ -107,40 +139,65 @@ export default function ReportChecklist() {
       valueGetter: (_, row) => `${zfill(row.id, 6) || ""}`,
     },
     { field: "fechaRegistro", headerName: "FECHA", width: 200 },
-    { field: "userResponsableControl", headerName: "USUARIO DE CONTROL", width: 200 },
-    { field: "nameLugarObservacion", headerName: "LUGAR DE OBSERVACIÓN", width: 200 },
-    { field: "observaciones", headerName: "OBSERVACIONES", width: 350 },
+    { field: "userResponsableControl", headerName: "USUARIO DE CONTROL", width: 300 },
+    { field: "observaciones", headerName: "OBSERVACIONES", width: 450 },
     {
       field: "estado",
       headerName: "ESTADO",
-      width: 240,
-      renderCell: (params) => (
-        <div>
-          {params.row.estado == 2 ? <Chip label="ARCHIVADO" size="small" color="success" /> : <Chip label="ANULADO" size="small" color="error" />}
-        </div>
-      ),
+      flex: 1,
+      renderCell: (params) => {
+        const estadoLabels: any = {
+          2: { icon: <CheckCircleIcon color="success" />, tooltip: "Archivado" },
+          1: { icon: <CancelIcon color="error" />, tooltip: "Anulado" },
+        };
+        return (
+          <Tooltip title={estadoLabels[params.row.estado]?.tooltip || "Desconocido"}>
+            {estadoLabels[params.row.estado]?.icon || <Chip label="DESCONOCIDO" size="small" color="default" />}
+          </Tooltip>
+        );
+      },
     },
     {
       field: "actions",
-      headerName: "VER VEPORTES",
+      headerName: "REPORTES",
       width: 150,
       sortable: false,
-      renderCell: (params) => (
-        <div>
-          <Button color="info" variant="contained" onClick={() => viewReport(params.row.id)}>
-            <RemoveRedEyeIcon />
-          </Button>
-          <Button color="primary" variant="contained" onClick={() => viewReportCierre(params.row.id)}>
-            <NoteAltIcon />
-          </Button>
-        </div>
+      renderCell: (params: any) => (
+        <Box>
+          <Tooltip title="Más opciones">
+            <IconButton aria-label="more" onClick={(event) => handleClickBtn(event, params.row.id)}>
+              <MoreVertIcon />
+            </IconButton>
+          </Tooltip>
+          <Menu
+            id={`menu_${params.row.id}`}
+            anchorEl={menuAnchors[params.row.id]}
+            open={Boolean(menuAnchors[params.row.id])}
+            onClose={() => handleCloseBtn(params.row.id)}
+          >
+            <MenuItem onClick={() => viewReport(params.row.id)}>
+              <ListItemIcon>
+                <NoteAltIcon />
+              </ListItemIcon>
+              <ListItemText primary="Reporte de Checklist" />
+            </MenuItem>
+            <MenuItem onClick={() => viewReportCierre(params.row.id)}>
+              <ListItemIcon>
+                <NoteAltIcon />
+              </ListItemIcon>
+              <ListItemText primary="Cierre de Observaciones" />
+            </MenuItem>
+          </Menu>
+        </Box>
       ),
     },
   ];
   async function viewReport(id: number) {
     handleOpen();
+    handleCloseBtn(id);
     try {
-      const response: ResponseObsEncontradas | undefined = await getCheclistById(id);
+      const response: ResponseObsEncontradas | undefined = await getCheclistById(id, account.token);
+      
       setListaDataReporte(response?.object ? response?.object : []);
     } catch (error) {
       console.error("Error de comunicacion con el servicio amazonas", error);
@@ -148,8 +205,9 @@ export default function ReportChecklist() {
   }
   async function viewReportCierre(id: number) {
     handleOpen2();
+    handleCloseBtn(id);
     try {
-      const response: ResponseObsEncontradas | undefined = await getCheclistById(id);
+      const response: ResponseObsEncontradas | undefined = await getCheclistById(id, account.token);
       setListaDataReporte2(response?.object ? response?.object : []);
     } catch (error) {
       console.error("Error de comunicacion con el servicio amazonas", error);

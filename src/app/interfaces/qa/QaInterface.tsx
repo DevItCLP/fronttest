@@ -28,6 +28,7 @@ interface ObjectData {
   imagenObservacion: string;
   observacionEncontrada: string;
   checkOption: number;
+  nombreTipo: string;
   nombreOpcion: string;
   idChecklist: number;
   userNameControl: string;

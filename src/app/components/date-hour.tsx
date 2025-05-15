@@ -41,13 +41,6 @@ export const DataRangeCC: React.FC<DataRangeProps> = ({ label, icon, name, _setV
 
   return (
     <div>
-      {/*    <label className="form-label" htmlFor={name}>
-        <span className="fs-6">
-          {icon}
-          {label}
-        </span>
-      </label> */}
-
       <DateRangePicker
         onChange={handleDateRangeChange}
         defaultValue={[new Date(), new Date()]}

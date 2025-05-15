@@ -5,6 +5,7 @@ import Card from "@mui/material/Card";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { ReactNode } from "react";
+import { alpha } from "@mui/material/styles";
 
 // ----------------------------------------------------------------------
 
@@ -12,7 +13,7 @@ export default function AppWidgetSummary({
   title,
   legend,
   icon,
-  color = "primary",
+  color = "#bdc3c7",
   sx,
   ...other
 }: {
@@ -24,8 +25,8 @@ export default function AppWidgetSummary({
 }) {
   return (
     <Card
-      border={1}
-      borderColor="#F4F6F6"
+      border={2}
+      borderColor={(theme) => alpha(color, 0.1)}
       component={Stack}
       spacing={3}
       direction="row"
@@ -34,9 +35,8 @@ export default function AppWidgetSummary({
         py: 5,
         borderRadius: 2,
         "&:hover": {
-          /* backgroundColor: "#F4F6F6", */
           fontSize: "37px",
-          borderColor: "#EBEDEF",
+          borderColor: (theme) => alpha(color, 0.2),
         },
         ...sx,
       }}
@@ -47,7 +47,7 @@ export default function AppWidgetSummary({
       <Stack spacing={0.5}>
         <Typography variant="h4"> {title}</Typography>
 
-        <Typography variant="subtitle2" sx={{ color: "text.disabled" }}>
+        <Typography variant="subtitle2" sx={{ color: (theme) => alpha(color, 0.6) }}>
           {legend}
         </Typography>
       </Stack>
