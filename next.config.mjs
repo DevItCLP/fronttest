@@ -1,5 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: "standalone",
+  experimental: {
+    appDir: true,
+    serverComponentsExternalPackages: ["axios"],
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
